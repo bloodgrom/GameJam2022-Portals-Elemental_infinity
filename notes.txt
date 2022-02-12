@@ -1,0 +1,19 @@
+Predifined rooms:
+
+Start Room - 3x3 Player in middle
+Normal Room - 3x3
+Big Room - 5x5
+Normal Hallway - 10x3
+Big Hallway - 12x 5
+Boss Room 1 - 20x20
+Boss Room 2 - 30x10
+
+Random Rooms:
+
+Height: 2:8
+Width: 2:8
+
+Room size type:
+Small area: size <= 6
+Medium area: 6 < size <= 25
+Large area: 25 < size <= 64
