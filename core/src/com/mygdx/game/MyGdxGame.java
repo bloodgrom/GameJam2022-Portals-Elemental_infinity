@@ -66,10 +66,15 @@ public class MyGdxGame extends ApplicationAdapter {
 		int floorTileX = 4;
 		int floorTileY = 4;
 		
-		camera = new OrthographicCamera();
+		// camera = new OrthographicCamera((w/h)*320, 320);
 		// camera.setToOrtho(false, (w/h)*320, 320);
-		camera.setToOrtho(false, 1920, 1080);
-		camera.update();
+		// // camera.setToOrtho(true, 1920, 1080);
+		// camera.update();
+
+		camera = new OrthographicCamera();  // The camera will take the viewport (what you can see looking through the camera) of the screen size (1280, 720) if you don't specify otherwise
+		camera.setToOrtho(false, (w/h)*320, 320); // We want (0,0) in the bottom left corner
+		camera.position.set(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 0); // this will render the camera so that 0,0 (of everything inside batch.begin() - batch.end()) will be rendered at 0,0 on your screen
+		camera.update(); // Updates the camera
 
 		// cameraController = new OrthoCamController(camera);
 		// Gdx.input.setInputProcessor(cameraController);
@@ -79,7 +84,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//SCALE IMAGES/SPRITES
 		Pixmap pixmap200 = new Pixmap(Gdx.files.internal("bucket.png"));
-		Pixmap pixmap100 = new Pixmap(54, 54, pixmap200.getFormat());
+		Pixmap pixmap100 = new Pixmap(16, 16, pixmap200.getFormat());
 		pixmap100.drawPixmap(pixmap200,
 						0, 0, pixmap200.getWidth(), pixmap200.getHeight(),
 						0, 0, pixmap100.getWidth(), pixmap100.getHeight()
@@ -383,17 +388,17 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () {
 		ScreenUtils.clear(100f / 255f, 100f / 255f, 250f / 255f, 1f);
-		camera.update();
-		renderer.setView(camera);
-		renderer.render();
+
+
+		camera.position.set(player.body.x, player.body.y, 0); // x and y could be changed by Keyboard input for example
+		camera.update(); // Don't forget me ;)
+		batch.setProjectionMatrix(camera.combined); // Tells the spritebatch to render according to your camera
 		batch.begin();
 		font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+		renderer.setView(camera);
+		renderer.render();
 		batch.draw(bucketImage, player.body.x, player.body.y);
 		batch.end();
-
-		// camera.position.x = player.body.x;
-    // camera.position.y = player.body.y;
-    // camera.update();
 
 		if(controller.left){
 			player.body.x -= 1;
