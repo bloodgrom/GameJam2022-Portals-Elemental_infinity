@@ -6,8 +6,11 @@ import java.util.List;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -31,26 +34,38 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Texture tiles;
 	private Texture tilesFloor;
 	private Texture tilesCorridor;
-	private Texture player;
+	private Texture playerSprite;
 	private Texture texture;
 	private BitmapFont font;
 	private SpriteBatch batch;
+	public KeyboardController controller;
+
+	private Texture bucketImage;
+	
 
 	public static int numTilesHorizontal = 120;
 	public static int numTilesVertical = 68;
 
+	public Player player;
+
+	float w;
+	float h;
+
 	@Override
 	public void create () {
-		float w = Gdx.graphics.getWidth();
-		float h = Gdx.graphics.getHeight();
+
+		controller = new KeyboardController();
+		Gdx.input.setInputProcessor(controller);
+
+		w = Gdx.graphics.getWidth();
+		h = Gdx.graphics.getHeight();
 
 		int corridorTileX = 1;
 		int corridorTileY = 8;
 
-		int floorTileX = 1;
-		int floorTileY = 8;
-
-
+		int floorTileX = 4;
+		int floorTileY = 4;
+		
 		camera = new OrthographicCamera();
 		// camera.setToOrtho(false, (w/h)*320, 320);
 		camera.setToOrtho(false, 1920, 1080);
@@ -62,6 +77,15 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		batch = new SpriteBatch();
 
+		//SCALE IMAGES/SPRITES
+		Pixmap pixmap200 = new Pixmap(Gdx.files.internal("bucket.png"));
+		Pixmap pixmap100 = new Pixmap(54, 54, pixmap200.getFormat());
+		pixmap100.drawPixmap(pixmap200,
+						0, 0, pixmap200.getWidth(), pixmap200.getHeight(),
+						0, 0, pixmap100.getWidth(), pixmap100.getHeight()
+		);
+
+		bucketImage = new Texture(pixmap100);
 		
 		tiles = new Texture("DarkCastle.png");
 
@@ -115,20 +139,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		tilesFloor = new Texture("Dungeon_Tileset.png");
 		TextureRegion[][] splitTilesFloor = TextureRegion.split(tilesFloor, 16, 16);
 
-		int firstRoomCoordX = customRooms.get(0).coordX;
-		int firstRoomCoordY = customRooms.get(0).coordY;
-		int firstRoomWidth = customRooms.get(0).width;
-		int firstRoomHeight = customRooms.get(0).height;
-
-		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
-			for(int x = firstRoomCoordX; x < firstRoomCoordX + firstRoomWidth; x++) {
-				Cell cellFirst = new Cell();
-				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
-				layer2.setCell(x, y, cellFirst);
-
-			}
-		}
-
 		for(int i = 1; i < num_of_rooms; i++) {
 
 			//generate width and height for room
@@ -150,38 +160,8 @@ public class MyGdxGame extends ApplicationAdapter {
 				}
 			}
 
-			if(i != num_of_rooms - 1) {
-				//----------------------- FLOOR SECTION -----------------------//
-				int coordX = rooms.get(i).coordX;
-				int coordY = rooms.get(i).coordY;
-
-				int width = rooms.get(i).width;
-				int height = rooms.get(i).height;
-
-				for(int y = coordY; y < coordY + height; y++) {
-					for(int x = coordX; x < coordX + width; x++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
-						layer2.setCell(x, y, cell);
-				
-					}
-				}
-			}
-			else {
+			if(i == num_of_rooms - 1) {
 				rooms.add(customRooms.get(1));
-
-				int endRoomCoordX = customRooms.get(1).coordX;
-				int endRoomCoordY = customRooms.get(1).coordY;
-				int endRoomWidth = customRooms.get(1).width;
-				int endRoomHeight = customRooms.get(1).height;
-
-				for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
-					for(int x = endRoomCoordX; x < endRoomCoordX + endRoomWidth; x++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesFloor[0][3]));
-						layer2.setCell(x, y, cell);
-					}
-				}
 			}
 
 			//----------------------- CORIDOR SECTION -----------------------//
@@ -319,18 +299,81 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			}
 			
+			
 		}
 		//ENDS HERE
+
+		//----------------------- DRAW ROOMS STARTS -----------------------//
+
+		int firstRoomCoordX = customRooms.get(0).coordX;
+		int firstRoomCoordY = customRooms.get(0).coordY;
+		int firstRoomWidth = customRooms.get(0).width;
+		int firstRoomHeight = customRooms.get(0).height;
+
+		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
+			for(int x = firstRoomCoordX; x < firstRoomCoordX + firstRoomWidth; x++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
+				layer2.setCell(x, y, cellFirst);
+
+			}
+		}
+
+		for (int i = 1; i < num_of_rooms; i++) {
+			int coordX = rooms.get(i).coordX;
+			int coordY = rooms.get(i).coordY;
+
+			int width = rooms.get(i).width;
+			int height = rooms.get(i).height;
+
+			for(int y = coordY; y < coordY + height; y++) {
+				for(int x = coordX; x < coordX + width; x++) {
+					Cell cell = new Cell();
+					cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
+					layer2.setCell(x, y, cell);
+			
+				}
+			}
+		}
+
+		int endRoomCoordX = customRooms.get(1).coordX;
+		int endRoomCoordY = customRooms.get(1).coordY;
+		int endRoomWidth = customRooms.get(1).width;
+		int endRoomHeight = customRooms.get(1).height;
+
+		for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
+			for(int x = endRoomCoordX; x < endRoomCoordX + endRoomWidth; x++) {
+				Cell cell = new Cell();
+				cell.setTile(new StaticTiledMapTile(splitTilesFloor[0][3]));
+				layer2.setCell(x, y, cell);
+			}
+		}
+
+		//----------------------- DRAW ROOMS ENDS -----------------------//
 
 		layers.add(layer2);
 
 		//----------------------- PLAYER/ITEM/MONSTERS - LAYER 3 -----------------------//
-		player = new Texture("player_right.png");
-		TextureRegion[][] splitTilesPlayer = TextureRegion.split(player, 48, 48);
-		TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
-		Cell cell = new Cell();
-		cell.setTile(new StaticTiledMapTile(splitTilesPlayer[0][0]));
-		layer3.setCell(customRooms.get(0).centerCoordX - 1, customRooms.get(0).centerCoordY, cell);
+		// player = new Texture("player_right.png");
+		// TextureRegion[][] splitTilesPlayer = TextureRegion.split(player, 48, 48);
+		// TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
+		// Cell cell = new Cell();
+		// cell.setTile(new StaticTiledMapTile(splitTilesPlayer[0][0]));
+		// layer3.setCell(customRooms.get(0).centerCoordX - 1, customRooms.get(0).centerCoordY, cell);
+
+		playerSprite = new Texture("player_right.png");
+		TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+		TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 54, 54);
+
+		player = new Player(
+			(customRooms.get(0).centerCoordX), 
+			(customRooms.get(0).centerCoordY),
+			16,
+			16,
+			100,
+			20,
+			splitTilesPlayer[0][0]
+		);
 
 		layers.add(layer3);
 
@@ -345,7 +388,27 @@ public class MyGdxGame extends ApplicationAdapter {
 		renderer.render();
 		batch.begin();
 		font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+		batch.draw(bucketImage, player.body.x, player.body.y);
 		batch.end();
+
+		// camera.position.x = player.body.x;
+    // camera.position.y = player.body.y;
+    // camera.update();
+
+		if(controller.left){
+			player.body.x -= 1;
+			// playerSprite = new Texture("player_right.png");
+			// TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+		} 
+		if(controller.right){
+			player.body.x += 1;
+		} 
+		if(controller.down){
+			player.body.y -= 1;
+		} 
+		if(controller.up){
+			player.body.y += 1;
+		} 
 	}
 
 	public double calculateDistanceBetweenPoints(
