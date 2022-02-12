@@ -16,12 +16,18 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayers;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.physics.bullet.linearmath.int4;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MyGdxGame extends ApplicationAdapter {
@@ -34,6 +40,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Texture tiles;
 	private Texture tilesFloor;
 	private Texture tilesCorridor;
+	private Texture additionalWalls;
 	private Texture playerSprite;
 	private Texture texture;
 	private BitmapFont font;
@@ -55,21 +62,136 @@ public class MyGdxGame extends ApplicationAdapter {
 	float viewPortHeight;
 
 	int counter;
+	int animationRunCounter;
+
+	int corridorTileX;
+	int corridorTileY;
+
+	int floorTileX;
+	int floorTileY;
+
+	int tileCoordX;
+	int tileCoordY;
+
+	int additionalWallsHorizontalTopX;
+	int additionalWallsHorizontalTopY;
+
+	int additionalWallsHorizontalBottomX;
+	int additionalWallsHorizontalBottomY;
+
+	int additionalWallsHorizontalTopLeftX;
+	int additionalWallsHorizontalTopLeftY;
+
+	int additionalWallsHorizontalTopRightX;
+	int additionalWallsHorizontalTopRightY;
+
+	int additionalWallsHorizontalBottomLeftX;
+	int additionalWallsHorizontalBottomLeftY;
+
+	int additionalWallsHorizontalBottomRightX;
+	int additionalWallsHorizontalBottomRightY;
+
+	TextureRegion[][] splitTiles;
+
+
+	int additionalWallsVerticalX;
+	int additionalWallsVerticalY;
+
+	TiledMapTileLayer collisionLayer;
 
 
 	@Override
 	public void create () {
 
 		counter = 0;
+		animationRunCounter = 0;
 
 		controller = new KeyboardController();
 		Gdx.input.setInputProcessor(controller);
 
-		int corridorTileX = 1;
-		int corridorTileY = 8;
+		additionalWalls = new Texture("new_dungeon2.png");
 
-		int floorTileX = 4;
-		int floorTileY = 4;
+		additionalWallsHorizontalTopX = 0;
+		additionalWallsHorizontalTopY = 2;
+
+		additionalWallsHorizontalBottomX = 1;
+		additionalWallsHorizontalBottomY = 2;
+
+		additionalWallsHorizontalTopLeftX = 0;
+		additionalWallsHorizontalTopLeftY = 1;
+
+		additionalWallsHorizontalTopRightX = 0;
+		additionalWallsHorizontalTopRightY = 3;
+
+		additionalWallsHorizontalBottomLeftX = 1;
+		additionalWallsHorizontalBottomLeftY = 1;
+
+		additionalWallsHorizontalBottomRightX = 1;
+		additionalWallsHorizontalBottomRightY = 3;
+
+
+
+		additionalWallsVerticalX = 3;
+		additionalWallsVerticalY = 0;
+
+		TextureRegion[][] additionalWallsRegion = TextureRegion.split(additionalWalls, 16, 16);
+
+		tilesFloor = new Texture("new_dungeon2.png");
+		tilesCorridor = new Texture("new_dungeon2.png");
+
+		corridorTileX = 8;
+		corridorTileY = 0;
+
+		floorTileX = 8;
+		floorTileY = 0;
+
+
+		int pickTileSet = (int) (Math.random()*(4));
+
+		if(pickTileSet == 0) {
+			// tiles = new Texture("lava.png");
+			//SCALE IMAGES/SPRITES
+			Pixmap pixmap200 = new Pixmap(Gdx.files.internal("lava.png"));
+			Pixmap pixmap100 = new Pixmap(16, 16, pixmap200.getFormat());
+			pixmap100.drawPixmap(pixmap200,
+							0, 0, pixmap200.getWidth(), pixmap200.getHeight(),
+							0, 0, pixmap100.getWidth(), pixmap100.getHeight()
+			);
+
+			tiles = new Texture(pixmap100);
+			splitTiles = TextureRegion.split(tiles, 16, 16);
+
+			tileCoordX = 0;
+			tileCoordY = 0;
+		}
+
+		else if(pickTileSet == 1) {
+			tiles = new Texture("IceSet.png");
+			splitTiles = TextureRegion.split(tiles, 16, 16);
+
+			tileCoordX = 0;
+			tileCoordY = 0;
+
+		}
+
+		else if(pickTileSet == 2) {
+			tiles = new Texture("Water.png");
+			splitTiles = TextureRegion.split(tiles, 16, 16);
+
+			tileCoordX = 0;
+			tileCoordY = 2;
+
+		}
+
+		else {
+			tiles = new Texture("new_forest.png");
+			splitTiles = TextureRegion.split(tiles, 16, 16);
+
+			tileCoordX = 2;
+			tileCoordY = 11;
+
+		}
+
 
 		w = Gdx.graphics.getWidth();
 	  h = Gdx.graphics.getHeight();
@@ -93,27 +215,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		batch = new SpriteBatch();
 
-		//SCALE IMAGES/SPRITES
-		Pixmap pixmap200 = new Pixmap(Gdx.files.internal("bucket.png"));
-		Pixmap pixmap100 = new Pixmap(16, 16, pixmap200.getFormat());
-		pixmap100.drawPixmap(pixmap200,
-						0, 0, pixmap200.getWidth(), pixmap200.getHeight(),
-						0, 0, pixmap100.getWidth(), pixmap100.getHeight()
-		);
-
-		bucketImage = new Texture(pixmap100);
-		
-		tiles = new Texture("DarkCastle.png");
-
-		TextureRegion[][] splitTiles = TextureRegion.split(tiles, 16, 16);
 		map = new TiledMap();
 
 		MapLayers layers = map.getLayers();
 
 		//----------------------- WALL SECTION - LAYER 1 -----------------------//
-
-		int tileCoordX = 0;
-		int tileCoordY = 0;
 		
 		TiledMapTileLayer layer1 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
 		for (int x = 0; x < numTilesHorizontal; x++) {
@@ -122,18 +228,18 @@ public class MyGdxGame extends ApplicationAdapter {
 				// int tx = (int)(Math.random() * splitTiles[ty].length);
 				
 				//----------------------- SELECT TYPE OF WALL -----------------------//
-				if (Math.random() <= 1) {
-					tileCoordX = 0;
-					tileCoordY = 0;
-				}
-				else if (Math.random() < 0.95) {
-					tileCoordX = 0;
-					tileCoordY = 1;
-				}
-				else {
-					tileCoordX = 0;
-					tileCoordY = 0;
-				}
+				// if (Math.random() <= 1) {
+				// 	tileCoordX = 0;
+				// 	tileCoordY = 3;
+				// }
+				// else if (Math.random() < 0.95) {
+				// 	tileCoordX = 0;
+				// 	tileCoordY = 1;
+				// }
+				// else {
+				// 	tileCoordX = 0;
+				// 	tileCoordY = 0;
+				// }
 				Cell cell = new Cell();
 				cell.setTile(new StaticTiledMapTile(splitTiles[tileCoordX][tileCoordY]));
 				layer1.setCell(x, y, cell);
@@ -152,7 +258,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		rooms.add(customRooms.get(0));
 
-		tilesFloor = new Texture("Dungeon_Tileset.png");
 		TextureRegion[][] splitTilesFloor = TextureRegion.split(tilesFloor, 16, 16);
 
 		for(int i = 1; i < num_of_rooms; i++) {
@@ -180,9 +285,132 @@ public class MyGdxGame extends ApplicationAdapter {
 				rooms.add(customRooms.get(1));
 			}
 
+			//----------------------- DRAW ROOMS WALLS STARTS -----------------------//
+			int firstRoomCoordX = customRooms.get(0).coordX;
+			int firstRoomCoordY = customRooms.get(0).coordY;
+			int firstRoomWidth = customRooms.get(0).width;
+			int firstRoomHeight = customRooms.get(0).height;
+
+			for(int x = firstRoomCoordX - 1; x < firstRoomCoordX + firstRoomWidth + 1; x++) {
+				Cell cellFirst = new Cell();
+				if(x == firstRoomCoordX - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomLeftX][additionalWallsHorizontalBottomLeftY]));
+				}
+				else if(x == (firstRoomCoordX + firstRoomWidth + 1) - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomRightX][additionalWallsHorizontalBottomRightY]));
+				}
+				else {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomX][additionalWallsHorizontalBottomY]));
+				}
+				layer2.setCell(x, firstRoomCoordY - 1, cellFirst);
+			}
+
+			for(int x = firstRoomCoordX - 1; x < firstRoomCoordX + firstRoomWidth + 1; x++) {
+				Cell cellFirst = new Cell();
+				if(x == firstRoomCoordX - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopLeftX][additionalWallsHorizontalTopLeftY]));
+				}
+				else if(x == (firstRoomCoordX + firstRoomWidth + 1) - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopRightX][additionalWallsHorizontalTopRightY]));
+				}
+				else {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopX][additionalWallsHorizontalTopY]));
+				}
+				layer2.setCell(x, firstRoomCoordY + firstRoomHeight, cellFirst);
+			}
+
+			for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(firstRoomCoordX - 1, y, cellFirst);
+			}
+
+			for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(firstRoomCoordX + firstRoomWidth, y, cellFirst);
+			}
+
+			int coordX = rooms.get(i).coordX;
+			int coordY = rooms.get(i).coordY;
+
+			int width = rooms.get(i).width;
+			int height = rooms.get(i).height;
+
+			for(int x = coordX - 1; x < coordX + width + 1; x++) {
+				Cell cellFirst = new Cell();
+				if(x == coordX - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomLeftX][additionalWallsHorizontalBottomLeftY]));
+				}
+				else if(x == (coordX + width + 1) - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomRightX][additionalWallsHorizontalBottomRightY]));
+				}
+				else {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomX][additionalWallsHorizontalBottomY]));
+				}
+				layer2.setCell(x, coordY - 1, cellFirst);
+			}
+
+			for(int x = coordX - 1; x < coordX + width + 1; x++) {
+				Cell cellFirst = new Cell();
+				if(x == coordX - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopLeftX][additionalWallsHorizontalTopLeftY]));
+				}
+				else if(x == (coordX + width + 1) - 1) {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopRightX][additionalWallsHorizontalTopRightY]));
+				}
+				else {
+					cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopX][additionalWallsHorizontalTopY]));
+				}
+				layer2.setCell(x, coordY + height, cellFirst);
+			}
+
+			for(int y = coordY; y < coordY + height; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(coordX - 1, y, cellFirst);
+			}
+
+			for(int y = coordY; y < coordY + height; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(coordX + width, y, cellFirst);
+			}
+			
+
+			int endRoomCoordX = customRooms.get(1).coordX;
+			int endRoomCoordY = customRooms.get(1).coordY;
+			int endRoomWidth = customRooms.get(1).width;
+			int endRoomHeight = customRooms.get(1).height;
+
+			for(int x = endRoomCoordX - 1; x < endRoomCoordX + endRoomWidth + 1; x++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalBottomX][additionalWallsHorizontalBottomY]));
+				layer2.setCell(x, endRoomCoordY - 1, cellFirst);
+			}
+
+			for(int x = endRoomCoordX - 1; x < endRoomCoordX + endRoomWidth + 1; x++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsHorizontalTopX][additionalWallsHorizontalTopY]));
+				layer2.setCell(x, endRoomCoordY + endRoomHeight, cellFirst);
+			}
+
+			for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(endRoomCoordX - 1, y, cellFirst);
+			}
+
+			for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(additionalWallsRegion[additionalWallsVerticalX][additionalWallsVerticalY]));
+				layer2.setCell(endRoomCoordX + endRoomWidth, y, cellFirst);
+			}
+
+			//----------------------- DRAW ROOMS WALLS ENDS -----------------------//
+
 			//----------------------- CORIDOR SECTION -----------------------//
-			tilesCorridor = new Texture("Dungeon_Tileset.png");
-			TextureRegion[][] splitTilesCorridor = TextureRegion.split(tilesFloor, 16, 16);
+			TextureRegion[][] splitTilesCorridor = TextureRegion.split(tilesCorridor, 16, 16);
 
 			for(int l = 0; l < rooms.size(); l++) {
 				ArrayList<Room> roomsByDistance = new ArrayList<>();
@@ -319,7 +547,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		//ENDS HERE
 
-		//----------------------- DRAW ROOMS STARTS -----------------------//
+		//----------------------- DRAW ROOMS WALLS STARTS -----------------------//
 
 		int firstRoomCoordX = customRooms.get(0).coordX;
 		int firstRoomCoordY = customRooms.get(0).coordY;
@@ -329,18 +557,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
 			for(int x = firstRoomCoordX; x < firstRoomCoordX + firstRoomWidth; x++) {
 				Cell cellFirst = new Cell();
-				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
+				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 				layer2.setCell(x, y, cellFirst);
 
 			}
 		}
 
-		for (int i = 1; i < num_of_rooms; i++) {
-			int coordX = rooms.get(i).coordX;
-			int coordY = rooms.get(i).coordY;
+		for (int m = 1; m < num_of_rooms; m++) {
+			int coordX = rooms.get(m).coordX;
+			int coordY = rooms.get(m).coordY;
 
-			int width = rooms.get(i).width;
-			int height = rooms.get(i).height;
+			int width = rooms.get(m).width;
+			int height = rooms.get(m).height;
 
 			for(int y = coordY; y < coordY + height; y++) {
 				for(int x = coordX; x < coordX + width; x++) {
@@ -360,13 +588,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
 			for(int x = endRoomCoordX; x < endRoomCoordX + endRoomWidth; x++) {
 				Cell cell = new Cell();
-				cell.setTile(new StaticTiledMapTile(splitTilesFloor[0][3]));
+				cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 				layer2.setCell(x, y, cell);
 			}
 		}
 
 		//----------------------- DRAW ROOMS ENDS -----------------------//
 
+		collisionLayer = layer2;
 		layers.add(layer2);
 
 		//----------------------- PLAYER/ITEM/MONSTERS - LAYER 3 -----------------------//
@@ -401,8 +630,22 @@ public class MyGdxGame extends ApplicationAdapter {
 		ScreenUtils.clear(100f / 255f, 100f / 255f, 250f / 255f, 1f);
 
 		if(counter < 1) {
-			camera.position.x = player.body.x + player.width/2;
-			camera.position.y = player.body.y + player.height/2;
+			if(Room.startRoomLocationIndex == 0) {
+				camera.position.x = player.body.x + player.width/2 + viewPortWidth/2 - 64;
+				camera.position.y = player.body.y + player.height/2 + viewPortHeight/2 - 64;
+			}
+			else if(Room.startRoomLocationIndex == 1) {
+				camera.position.x = player.body.x + player.width/2 - viewPortWidth/2 + 64;
+				camera.position.y = player.body.y + player.height/2 + viewPortHeight/2 - 64;
+			}
+			else if(Room.startRoomLocationIndex == 2) {
+				camera.position.x = player.body.x + player.width/2 + viewPortWidth/2 - 64;
+				camera.position.y = player.body.y + player.height/2 - viewPortHeight/2 + 64;
+			}
+			else {
+				camera.position.x = player.body.x + player.width/2 - viewPortWidth/2 + 64;
+				camera.position.y = player.body.y + player.height/2 - viewPortHeight/2 + 64;
+			}
 		}
 
 		counter++;
@@ -423,34 +666,45 @@ public class MyGdxGame extends ApplicationAdapter {
 			camera.position.y = player.body.y + player.height/2;
 		}
 	
-		System.out.println("----------------------- VALUES 1-----------------------");
-		System.out.println(player.body.x);
-		System.out.println(viewPortWidth/2);
-		System.out.println("----------------------- VALUES 2-----------------------");
-		System.out.println(player.body.y);
-		System.out.println(viewPortHeight/2);
-		System.out.println("----------------------- VALUES 3-----------------------");
-
-
-		// camera.position.x = player.body.x + player.width/2;
-		// camera.position.y = player.body.y + player.height/2;
-		// camera.position.set(player.body.x + player.width/2, player.body.y + player.height/2, 0); // x and y could be changed by Keyboard input for example
-		camera.update(); // Don't forget me ;)
-		batch.setProjectionMatrix(camera.combined); // Tells the spritebatch to render according to your camera
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);	
 		batch.begin();
 		// font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
 		renderer.setView(camera);
 		renderer.render();
-		batch.draw(bucketImage, player.body.x, player.body.y);
+		batch.draw(player.currentTexture, player.body.x, player.body.y);
 		batch.end();
 
-		if(controller.left){
+		// //collision check
+		// for(int y=0; y<numTilesVertical; y++) {
+		// 	for(int x=0; x<numTilesHorizontal; x++) {
+		// 		TiledMapTile tile = collisionLayer.getCell(x, y).getTile();
+		// 		System.out.println(Intersector.overlaps(tile., r2));
+		// 	}
+		// }
+		
+		// // MapObjects objects = 
+		// // System.out.println(objects.getCount());
+		// for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
+
+		// 	Rectangle rectangle = rectangleObject.getRectangle();
+		// 	if (Intersector.overlaps(rectangle, player.body)) {
+		// 		// collision happened
+		// 		System.out.println("BOIIII");
+		// 	}
+		// }
+
+		if(controller.left){	
 			player.body.x -= 5;
-			// playerSprite = new Texture("player_right.png");
-			// TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+			playerSprite = new Texture("player_left.png");
+			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+			player.currentTexture = splitTilesPlayer[0][0];
 		} 
 		if(controller.right){
 			player.body.x += 5;
+			playerSprite = new Texture("player_right.png");	
+			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+			player.currentTexture = splitTilesPlayer[0][0];
 		} 
 		if(controller.down){
 			player.body.y -= 5;
@@ -458,6 +712,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		if(controller.up){
 			player.body.y += 5;
 		} 
+
+		animationRunCounter++;	
 	}
 
 	public double calculateDistanceBetweenPoints(

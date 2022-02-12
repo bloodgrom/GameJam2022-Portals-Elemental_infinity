@@ -20,6 +20,8 @@ public class Room {
     public int centerCoordX;
     public int centerCoordY;
 
+    public static int startRoomLocationIndex;
+
     public Room(int coordX, int coordY, int width, int height) {
 
         this.coordX = coordX;
@@ -82,7 +84,7 @@ public class Room {
         possibleStartRoomX.add(113);
         possibleStartRoomY.add(62);
 
-        int startRoomLocationIndex = (int) (Math.random()*3);
+        startRoomLocationIndex = (int) (Math.random()*3);
 
         int startRoomX = possibleStartRoomX.get(startRoomLocationIndex);
         int startRoomY = possibleStartRoomY.get(startRoomLocationIndex);
