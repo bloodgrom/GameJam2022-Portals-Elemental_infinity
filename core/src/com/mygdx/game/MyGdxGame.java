@@ -534,7 +534,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
-                            //collisionLayerBoolean[k][x1] = 1;
+                            collisionLayerBoolean[x1][k] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize, tileSize*iterator));
@@ -547,7 +547,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
-                            //collisionLayerBoolean[k][x1] = 1;
+                            collisionLayerBoolean[x1][k] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
@@ -560,7 +560,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
-                            //collisionLayerBoolean[y1][k] = 1;
+                            collisionLayerBoolean[k][y1] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize*iterator, tileSize));
@@ -573,7 +573,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
-                            //collisionLayerBoolean[y1][k] = 1;
+                            collisionLayerBoolean[k][y1] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
@@ -587,7 +587,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
-                            //collisionLayerBoolean[k][x2] = 1;
+                            collisionLayerBoolean[x2][k] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize, tileSize*iterator));
@@ -600,7 +600,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
-                            //collisionLayerBoolean[k][x2] = 1;
+                            collisionLayerBoolean[x2][k] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
@@ -613,7 +613,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y2, cell);
-                            //collisionLayerBoolean[y2][k] = 1;
+                            collisionLayerBoolean[k][y2] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize*iterator, tileSize));
@@ -626,7 +626,7 @@ public class MyGdxGame extends ApplicationAdapter {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y2, cell);
-                            //collisionLayerBoolean[y2][k] = 1;
+                            collisionLayerBoolean[k][y2] = 1;
                             iterator++;
 						}
                         collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
@@ -674,7 +674,7 @@ public class MyGdxGame extends ApplicationAdapter {
 					Cell cell = new Cell();
 					cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 					layer2.setCell(x, y, cell);
-                    
+                    collisionLayerBoolean[x][y] = 1;
 				}
 			}
 
@@ -692,6 +692,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				Cell cell = new Cell();
 				cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 				layer2.setCell(x, y, cell);
+                collisionLayerBoolean[x][y] = 1;
 			}
 		}
 
