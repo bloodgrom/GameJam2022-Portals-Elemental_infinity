@@ -17,3 +17,15 @@ Room size type:
 Small area: size <= 6
 Medium area: 6 < size <= 25
 Large area: 25 < size <= 64
+
+
+
+Player Stats:
+Health
+Defence
+Weapon
+Helmet
+Legs
+Cape
+Chest
+Boots

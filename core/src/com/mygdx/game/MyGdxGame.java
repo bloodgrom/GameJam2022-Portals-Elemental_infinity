@@ -21,33 +21,6 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-
-// public class MyGdxGame extends ApplicationAdapter {
-
-// 	SpriteBatch batch;
-// 	Texture img;
-	
-// 	@Override
-// 	public void create () {
-// 		batch = new SpriteBatch();
-// 		// img = new Texture("badlogic.jpg");
-// 	}
-
-// 	@Override
-// 	public void render () {
-// 		ScreenUtils.clear(1, 0, 0, 1);
-// 		batch.begin();
-// 		// batch.draw(img, 0, 0);
-// 		batch.end();
-// 	}
-	
-// 	@Override
-// 	public void dispose () {
-// 		batch.dispose();
-// 		// img.dispose();
-// 	}
-// }
-
 public class MyGdxGame extends ApplicationAdapter {
 
 	private TiledMap map;
@@ -58,6 +31,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Texture tiles;
 	private Texture tilesFloor;
 	private Texture tilesCorridor;
+	private Texture player;
 	private Texture texture;
 	private BitmapFont font;
 	private SpriteBatch batch;
@@ -96,11 +70,10 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		MapLayers layers = map.getLayers();
 
-		//----------------------- WALL SECTION -----------------------//
+		//----------------------- WALL SECTION - LAYER 1 -----------------------//
 
 		int tileCoordX = 0;
 		int tileCoordY = 0;
-
 		
 		TiledMapTileLayer layer1 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
 		for (int x = 0; x < numTilesHorizontal; x++) {
@@ -128,7 +101,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		layers.add(layer1);
 		
-		//----------------------- ROOM GENERATION -----------------------//
+		//----------------------- ROOM GENERATION - LAYER 2 -----------------------//
 		TiledMapTileLayer layer2 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
 		int num_of_rooms = (int) (Math.random()*(Room.MAX_NUM_ROOMS-Room.MIN_NUM_ROOMS)) + Room.MIN_NUM_ROOMS;
 		ArrayList<Room> rooms = new ArrayList<Room>();
@@ -260,14 +233,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
 				int numOfConnections;
 
-				// //take between 1 and 4 closest rooms
-				// if(rooms.size() < 15) {
-				// 	numOfConnections = 1;
-				// }
-				// else {
-				// 	numOfConnections = (int) (Math.random()*(2 - 1)) + 1;
-				// }
-
 				numOfConnections = 1;
 
 				//draw corridors between room i and chosen rooms
@@ -283,8 +248,6 @@ public class MyGdxGame extends ApplicationAdapter {
 					int chosenConnectionX = chosenConnection.get(0);
 					int chosenConnectionY = chosenConnection.get(1);
 					int chosenDirection = chosenConnection.get(2);
-
-				
 			
 					//up-1
 					if(x1 == chosenConnectionX && chosenConnectionY > y1) {
@@ -355,22 +318,21 @@ public class MyGdxGame extends ApplicationAdapter {
 				}
 
 			}
-
-
-
-
-
-
 			
 		}
 		//ENDS HERE
 
-
-
-		
-
-
 		layers.add(layer2);
+
+		//----------------------- PLAYER/ITEM/MONSTERS - LAYER 3 -----------------------//
+		player = new Texture("player_right.png");
+		TextureRegion[][] splitTilesPlayer = TextureRegion.split(player, 48, 48);
+		TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
+		Cell cell = new Cell();
+		cell.setTile(new StaticTiledMapTile(splitTilesPlayer[0][0]));
+		layer3.setCell(customRooms.get(0).centerCoordX - 1, customRooms.get(0).centerCoordY, cell);
+
+		layers.add(layer3);
 
 		renderer = new OrthogonalTiledMapRenderer(map);
 	}
