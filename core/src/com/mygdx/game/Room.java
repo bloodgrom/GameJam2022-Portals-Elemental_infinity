@@ -66,4 +66,61 @@ public class Room {
         return intersects;
     }
 
+    public static ArrayList<Room> generateCustomRooms() {
+        ArrayList<Room> customRooms = new ArrayList<>();
+        
+        //---------------- START ROOM -------------------------------
+        ArrayList<Integer> possibleStartRoomX = new ArrayList<>();
+        ArrayList<Integer> possibleStartRoomY = new ArrayList<>();
+
+        possibleStartRoomX.add(3);
+        possibleStartRoomY.add(3);
+        possibleStartRoomX.add(113);
+        possibleStartRoomY.add(3);
+        possibleStartRoomX.add(3);
+        possibleStartRoomY.add(62);
+        possibleStartRoomX.add(113);
+        possibleStartRoomY.add(62);
+
+        int startRoomLocationIndex = (int) (Math.random()*3);
+
+        int startRoomX = possibleStartRoomX.get(startRoomLocationIndex);
+        int startRoomY = possibleStartRoomY.get(startRoomLocationIndex);
+        int startRoomWidth = 3;
+        int startRoomHeight = 3;
+
+        Room startRoom = new Room(startRoomX, startRoomY, startRoomWidth, startRoomHeight);
+        customRooms.add(startRoom);
+        //---------------- START ROOM -------------------------------
+
+        //---------------- END ROOM -------------------------------
+        int endRoomX;
+        int endRoomY;
+
+        if(startRoomLocationIndex == 0) {
+            endRoomX = 113;
+            endRoomY = 62;
+        }
+        else if(startRoomLocationIndex == 1) {
+            endRoomX = 3;
+            endRoomY = 62;
+        }
+        else if(startRoomLocationIndex == 2) {
+            endRoomX = 113;
+            endRoomY = 3;
+        }
+        else {
+            endRoomX = 3;
+            endRoomY = 3;
+        }
+
+        int endRoomWidth = 5;
+        int endRoomHeight = 5;
+
+        Room endRoom = new Room(endRoomX, endRoomY, endRoomWidth, endRoomHeight);
+        customRooms.add(endRoom);
+        
+        return customRooms;
+    }
+
 }

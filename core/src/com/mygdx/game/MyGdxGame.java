@@ -132,6 +132,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		int num_of_rooms = (int) (Math.random()*(Room.MAX_NUM_ROOMS-Room.MIN_NUM_ROOMS)) + Room.MIN_NUM_ROOMS;
 		ArrayList<Room> rooms = new ArrayList<Room>();
 
+		// //here add custom rooms
+		rooms.addAll(Room.generateCustomRooms());
+
 		for(int i = 0; i < num_of_rooms; i++) {
 
 			//generate width and height for room
@@ -158,7 +161,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		//----------------------- FLOOR SECTION -----------------------//
 		tilesFloor = new Texture("Dungeon_Tileset.png");
 		TextureRegion[][] splitTilesFloor = TextureRegion.split(tilesFloor, 16, 16);
-
 		TiledMapTileLayer layer2 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
 		
 		for(int i = 0; i < rooms.size(); i++) {
@@ -171,10 +173,21 @@ public class MyGdxGame extends ApplicationAdapter {
 			for(int y = coordY; y < coordY + height; y++) {
 				for(int x = coordX; x < coordX + width; x++) {
 
-					Cell cell = new Cell();
-					cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
-					layer2.setCell(x, y, cell);
-
+					if (i == 0) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
+						layer2.setCell(x, y, cell);
+					}
+					else if(i == 1) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesFloor[0][3]));
+						layer2.setCell(x, y, cell);
+					}
+					else {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
+						layer2.setCell(x, y, cell);
+					}
 				}
 			}
 		}
@@ -183,8 +196,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		tilesCorridor = new Texture("Dungeon_Tileset.png");
 		TextureRegion[][] splitTilesCorridor = TextureRegion.split(tilesFloor, 16, 16);
 
-		
-		// CHANGE TO ALL ROOMS LATER
 		for(int i = 0; i < rooms.size(); i++) {
 			ArrayList<Room> roomsByDistance = new ArrayList<>();
 			ArrayList<Double> roomsDistance = new ArrayList<>();
