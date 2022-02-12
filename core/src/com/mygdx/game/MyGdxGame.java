@@ -1,8 +1,11 @@
 package com.mygdx.game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -43,6 +46,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Texture additionalWalls;
 	private Texture playerSprite;
 	private Texture texture;
+    private Texture textureTest;
 	private BitmapFont font;
 	private SpriteBatch batch;
 	public KeyboardController controller;
@@ -55,6 +59,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	public Player player;
 
+    public Portal portal;
+
 	float w;
 	float h;
 
@@ -62,7 +68,16 @@ public class MyGdxGame extends ApplicationAdapter {
 	float viewPortHeight;
 
 	int counter;
-	int animationRunCounter;
+    int animationPortalCounter;
+	int animationUnstuckCounter;
+
+    float previousCoordX;
+    float previousCoordY;
+
+    float initialCoordsX;
+    float initialCoordsY;
+
+    ArrayList<Texture> portal_variations;
 
 	int corridorTileX;
 	int corridorTileY;
@@ -97,19 +112,55 @@ public class MyGdxGame extends ApplicationAdapter {
 	int additionalWallsVerticalX;
 	int additionalWallsVerticalY;
 
-	TiledMapTileLayer collisionLayer;
+	ArrayList<Rectangle> collisionLayer;
+
+    //0 is wall, 1 is floor
+    int[][] collisionLayerBoolean;
+
+    ArrayList<Rectangle> finalCollisionLayer;
+
+    int tileSize;
 
 
 	@Override
 	public void create () {
 
+        collisionLayerBoolean = new int[numTilesHorizontal][numTilesVertical];
+
+        for (int row = 0; row < collisionLayerBoolean.length; row++) {
+            for (int col = 0; col < collisionLayerBoolean[row].length; col++) {
+                collisionLayerBoolean[row][col] = 0;
+            }
+        }
+
 		counter = 0;
-		animationRunCounter = 0;
+        animationPortalCounter = 0;
+        animationUnstuckCounter= 0;
+
+        portal_variations = new ArrayList<Texture>();
+        portal_variations.add(new Texture("green_ice_1.png"));
+        portal_variations.add(new Texture("green_ice_2.png"));
+        portal_variations.add(new Texture("green_ice_3.png"));
+        portal_variations.add(new Texture("green_ice_4.png"));
+        portal_variations.add(new Texture("green_ice_5.png"));
+        portal_variations.add(new Texture("green_ice_6.png"));
+        portal_variations.add(new Texture("green_ice_7.png"));
 
 		controller = new KeyboardController();
 		Gdx.input.setInputProcessor(controller);
 
 		additionalWalls = new Texture("new_dungeon2.png");
+
+        Pixmap pixmap2000 = new Pixmap(Gdx.files.internal("badlogic.jpg"));
+        Pixmap pixmap1000 = new Pixmap(16, 16, pixmap2000.getFormat());
+        pixmap1000.drawPixmap(pixmap2000,
+                        0, 0, pixmap2000.getWidth(), pixmap2000.getHeight(),
+                        0, 0, pixmap1000.getWidth(), pixmap1000.getHeight()
+        );
+
+    
+
+        textureTest = new Texture(pixmap1000);
 
 		additionalWallsHorizontalTopX = 0;
 		additionalWallsHorizontalTopY = 2;
@@ -129,7 +180,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		additionalWallsHorizontalBottomRightX = 1;
 		additionalWallsHorizontalBottomRightY = 3;
 
-
+        tileSize = 16;
 
 		additionalWallsVerticalX = 3;
 		additionalWallsVerticalY = 0;
@@ -144,6 +195,9 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		floorTileX = 8;
 		floorTileY = 0;
+
+        collisionLayer = new ArrayList<>();
+        finalCollisionLayer = new ArrayList<>();
 
 
 		int pickTileSet = (int) (Math.random()*(4));
@@ -475,70 +529,109 @@ public class MyGdxGame extends ApplicationAdapter {
 			
 					//up-1
 					if(x1 == chosenConnectionX && chosenConnectionY > y1) {
+                        int iterator = 1;
 						for(int k = y1; k < chosenConnectionY; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
+                            //collisionLayerBoolean[k][x1] = 1;
+                            iterator++;
 						}
+                        collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize, tileSize*iterator));
+                        
 					}
 					//down-1
 					else if(x1 == chosenConnectionX && chosenConnectionY < y1) {
+                        int iterator = 1;
 						for(int k = chosenConnectionY; k < y1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
+                            //collisionLayerBoolean[k][x1] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
+                        
+                    }
 					//right-1
 					else if(y1 == chosenConnectionY && chosenConnectionX > x1) {
+                        int iterator = 1;
 						for(int k = x1; k < chosenConnectionX+1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
+                            //collisionLayerBoolean[y1][k] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize*iterator, tileSize));
+                        
+                    }
 					//left-1
 					else if(y1 == chosenConnectionY && chosenConnectionX < x1) {
+                        int iterator = 1;
 						for(int k = chosenConnectionX; k < x1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
+                            //collisionLayerBoolean[y1][k] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
+                    }
 
 
 					//up-2
 					if(x2 == chosenConnectionX && chosenConnectionY > y2) {
+                        int iterator = 1;
 						for(int k = y2; k < chosenConnectionY; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
+                            //collisionLayerBoolean[k][x2] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize, tileSize*iterator));
+                        
+                    }
 					//down-2
 					else if(x2 == chosenConnectionX && chosenConnectionY < y2) {
+                        int iterator = 1;
 						for(int k = chosenConnectionY; k < y2; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
+                            //collisionLayerBoolean[k][x2] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
+                        
+                    }
 					//right-2
 					else if(y2 == chosenConnectionY && chosenConnectionX > x2) {
+                        int iterator = 1;
 						for(int k = x2; k < chosenConnectionX+1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y2, cell);
+                            //collisionLayerBoolean[y2][k] = 1;
+                            iterator++;
 						}
-					}
+                        collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize*iterator, tileSize));
+                        
+                    }
 					//left-2
 					else if(y2 == chosenConnectionY && chosenConnectionX < x2) {
+                        int iterator = 1;
 						for(int k = chosenConnectionX; k < x2; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y2, cell);
+                            //collisionLayerBoolean[y2][k] = 1;
+                            iterator++;
 						}
-					}	
+                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
+                        
+                    }	
 				}
 
 			}
@@ -554,12 +647,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		int firstRoomWidth = customRooms.get(0).width;
 		int firstRoomHeight = customRooms.get(0).height;
 
+        collisionLayer.add(new Rectangle(firstRoomCoordX*tileSize-16, firstRoomCoordY*tileSize, firstRoomWidth*tileSize, firstRoomHeight*tileSize));
+        
+
 		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
 			for(int x = firstRoomCoordX; x < firstRoomCoordX + firstRoomWidth; x++) {
 				Cell cellFirst = new Cell();
 				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 				layer2.setCell(x, y, cellFirst);
+                collisionLayerBoolean[x][y] = 1;
 
+                System.out.println(x);
+                System.out.println(y);
 			}
 		}
 
@@ -575,10 +674,13 @@ public class MyGdxGame extends ApplicationAdapter {
 					Cell cell = new Cell();
 					cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 					layer2.setCell(x, y, cell);
-			
+                    
 				}
 			}
-		}
+
+            collisionLayer.add(new Rectangle(coordX*tileSize, coordY*tileSize, width*tileSize, height*tileSize));
+            //collisionLayerBoolean[coordY][coordX] = 1;
+        }
 
 		int endRoomCoordX = customRooms.get(1).coordX;
 		int endRoomCoordY = customRooms.get(1).coordY;
@@ -595,7 +697,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//----------------------- DRAW ROOMS ENDS -----------------------//
 
-		collisionLayer = layer2;
 		layers.add(layer2);
 
 		//----------------------- PLAYER/ITEM/MONSTERS - LAYER 3 -----------------------//
@@ -613,14 +714,62 @@ public class MyGdxGame extends ApplicationAdapter {
 		player = new Player(
 			(customRooms.get(0).centerCoordX), 
 			(customRooms.get(0).centerCoordY),
-			16,
-			16,
+			14,
+			14,
 			100,
 			20,
 			splitTilesPlayer[0][0]
 		);
 
+        previousCoordX = player.body.x;
+        previousCoordY = player.body.y;
+
+        initialCoordsX = player.body.x;
+        initialCoordsY = player.body.y;
+
+        portal = new Portal(
+            (customRooms.get(1).centerCoordX) - 1, 
+            (customRooms.get(1).centerCoordY),
+            48,
+            32
+        );
+
 		layers.add(layer3);
+
+        
+
+
+        // //create final collsion layer
+        // for(int i=0; i< collisionLayerBoolean.length; i--) {
+        //     for(int j=0; j< collisionLayerBoolean[i].length; j++) {
+        //             if(collisionLayerBoolean[i][j] == 0) {
+        //                 finalCollisionLayer.add(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
+        //                 //System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
+        //             }
+        //     }
+        // }
+
+        //create final collsion layer
+        for(int i=0; i< collisionLayerBoolean.length; i++) {
+            for(int j=0; j< collisionLayerBoolean[i].length; j++) {
+                    if(collisionLayerBoolean[i][j] == 0) {
+                        finalCollisionLayer.add(new Rectangle(i*tileSize - tileSize, j*tileSize, tileSize, tileSize));
+                        //System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
+                    }
+                    else {
+                        System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
+                        System.out.println("=====================");
+                    }
+            }
+        }
+
+        //print boolean array
+        for(int i=30; i>0; i--) {
+            for(int j=0 ; j<30; j++) {
+                System.out.print(collisionLayerBoolean[i][j]);
+            }
+            System.out.println("");
+        }
 
 		renderer = new OrthogonalTiledMapRenderer(map);
 	}
@@ -672,55 +821,199 @@ public class MyGdxGame extends ApplicationAdapter {
 		// font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
 		renderer.setView(camera);
 		renderer.render();
+        batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
+
+        // for (int i = 0; i < finalCollisionLayer.size(); i++) {
+        //     Rectangle currentRectangle = finalCollisionLayer.get(i);
+        //     batch.draw(textureTest, currentRectangle.x, currentRectangle.y);
+        // }
+
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 		batch.end();
 
-		// //collision check
-		// for(int y=0; y<numTilesVertical; y++) {
-		// 	for(int x=0; x<numTilesHorizontal; x++) {
-		// 		TiledMapTile tile = collisionLayer.getCell(x, y).getTile();
-		// 		System.out.println(Intersector.overlaps(tile., r2));
-		// 	}
-		// }
+        boolean canMoveUp = true;
+        boolean canMoveDown = true;
+        boolean canMoveLeft = true;
+        boolean canMoveRight = true;
+
+        
+        for(int i=0; i<finalCollisionLayer.size(); i++) {
+            if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
+                System.out.println("COLLIDE");
+
+                float pLeft = player.body.x;
+                float pRight = player.body.x + player.body.width;
+                float pTop = player.body.y + player.body.height;
+                float pBot = player.body.y;
+
+                float wLeft = finalCollisionLayer.get(i).x;
+                float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
+                float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
+                float wBot = finalCollisionLayer.get(i).y;
+
+                
+                
+                //  //bottom left
+                //  if (pLeft < wLeft && pRight > wLeft &&
+                //     pTop > wBot && pBot < wBot) {
+                //     player.body.x += player.speed;
+                //     player.body.y += player.speed;
+                // }
+                // //bottom right
+                // else if (pLeft < wRight && pRight > wRight &&
+                //         pTop > wBot && pBot < wBot) {
+                //     player.body.x -= player.speed;
+                //     player.body.y += player.speed;
+                // }
+                // //top right
+                // else if (pLeft < wRight && pRight > wRight &&
+                //         pTop > wTop && pBot < wTop) {
+                //     player.body.x -= player.speed;
+                //     player.body.y -= player.speed;
+                // }
+                // //top left
+                // else if (pLeft < wLeft && pRight > wLeft &&
+                //         pTop > wTop && pBot < wTop) {
+                //     player.body.x += player.speed;
+                //     player.body.y -= player.speed;
+                // }
+
+
+
+                if(animationPortalCounter < 6*9) {
+                    animationPortalCounter++;
+                    if(animationPortalCounter % 9 == 0 ) {
+                        portal.currentTexture = portal_variations.get(animationPortalCounter/9);
+                    }
+                }
+                else {
+                    animationPortalCounter = 0;
+                }
+
+                // //left
+                // if (pLeft < wRight && pRight > wRight) {
+                //     canMoveLeft = false;
+                //     //up
+                //     if (pTop > wBot && pBot < wBot) {
+                //         canMoveUp = false;
+                //     }
+                //     //down
+                //     else if (pTop > wTop && pBot < wTop) {
+                //         canMoveDown = false;
+                //     }
+                // }
+                // //right
+                // else if (pLeft < wLeft && pRight > wLeft) {
+                //     canMoveRight = false;
+                //     //up
+                //     if (pTop > wBot && pBot < wBot) {
+                //         canMoveUp = false;
+                //     }
+                //     //down
+                //     else if (pTop > wTop && pBot < wTop) {
+                //         canMoveDown = false;
+                //     }
+                // }
+                // //up
+                // else if(pTop > wBot && pBot < wBot) {
+                //     canMoveUp = false;
+                //     //left
+                //     if (pLeft < wRight && pRight > wRight) {
+                //         canMoveLeft = false;
+                //     }
+                //     //right
+                //     else if (pLeft < wLeft && pRight > wLeft){
+                //         canMoveRight = false;
+                //     }
+                // }
+                // //down
+                // else if(pTop > wTop && pBot < wTop) {
+                //     canMoveDown = false;
+                //     //left
+                //     if (pLeft < wRight && pRight > wRight) {
+                //         canMoveLeft = false;
+                //     }
+                //     //right
+                //     else if (pLeft < wLeft && pRight > wLeft){
+                //         canMoveRight = false;
+                //     }
+                // }
+                
+                //left
+                if(pLeft < wRight && pRight > wRight) {
+                    canMoveLeft = false;
+                    
+                }
+                //right
+                if(pLeft < wLeft && pRight > wLeft) {
+                    canMoveRight = false;
+                    
+                }
+                //up
+                if(pTop > wBot && pBot < wBot) {
+                    canMoveUp = false;
+                    
+                }
+                //down
+                if(pTop > wTop && pBot < wTop) {
+                    canMoveDown = false;
+                    
+                }
+
+                if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
+                    if(player.body.x == previousCoordX && player.body.y == previousCoordY) {
+                        player.body.x = initialCoordsX;
+                        player.body.y = initialCoordsY;
+                    }
+                    else {
+                        player.body.x = previousCoordX;
+                        player.body.y = previousCoordY;
+                    }
+                }
+
+                
+            }
+            
+            
+        }
+       
+
 		
-		// // MapObjects objects = 
-		// // System.out.println(objects.getCount());
-		// for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
+		
 
-		// 	Rectangle rectangle = rectangleObject.getRectangle();
-		// 	if (Intersector.overlaps(rectangle, player.body)) {
-		// 		// collision happened
-		// 		System.out.println("BOIIII");
-		// 	}
-		// }
-
-		if(controller.left){	
-			player.body.x -= 5;
-			playerSprite = new Texture("player_left.png");
+		if(controller.left && canMoveLeft){	
+			player.body.x -= player.speed;
+			playerSprite = new Texture("player_left.png");  
 			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
 			player.currentTexture = splitTilesPlayer[0][0];
 		} 
-		if(controller.right){
-			player.body.x += 5;
+		if(controller.right && canMoveRight){
+			player.body.x += player.speed;
 			playerSprite = new Texture("player_right.png");	
 			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
 			player.currentTexture = splitTilesPlayer[0][0];
 		} 
-		if(controller.down){
-			player.body.y -= 5;
+		if(controller.down && canMoveDown){
+			player.body.y -= player.speed;
 		} 
-		if(controller.up){
-			player.body.y += 5;
+		if(controller.up && canMoveUp){
+			player.body.y += player.speed;
 		} 
 
-		animationRunCounter++;	
+
+        if(animationUnstuckCounter < 6*9) {
+            animationUnstuckCounter++;
+            if(animationUnstuckCounter % 9 == 0 ) {
+                previousCoordX = player.body.x;
+                previousCoordY = player.body.y;
+            }
+        }
+        else {
+            animationUnstuckCounter = 0;
+        }
+
 	}
 
-	public double calculateDistanceBetweenPoints(
-	double x1, 
-	double y1, 
-	double x2, 
-	double y2) {       
-    return Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+	
 }
-}
+

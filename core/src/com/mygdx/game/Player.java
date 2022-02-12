@@ -1,5 +1,10 @@
 package com.mygdx.game;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -11,7 +16,7 @@ public class Player {
     public int width;
     public int height;
 
-    public float playerSpeed = 10.0f;
+    public int speed = 1;
 
     public int health;
     public int defence;
@@ -41,4 +46,5 @@ public class Player {
 
         this.currentTexture = currentTexture;
     }
+
 }
