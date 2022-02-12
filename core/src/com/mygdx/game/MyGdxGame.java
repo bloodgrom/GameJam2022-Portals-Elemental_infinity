@@ -178,59 +178,49 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		
 		// CHANGE TO ALL ROOMS LATER
-		for(int i = 0; i < 1; i++) {
+		for(int i = 0; i < rooms.size(); i++) {
 			ArrayList<Room> roomsByDistance = new ArrayList<>();
 			ArrayList<Double> roomsDistance = new ArrayList<>();
 
-			ArrayList<Double> allDistances = new ArrayList<>();
+			for(int k = 0; k < rooms.size(); k++) {
 
-			for(int k = i + 1; k < rooms.size(); k++) {
-				int x1 = rooms.get(i).centerCoordX;
-				int y1 = rooms.get(i).centerCoordY;
-				int x2 = rooms.get(k).centerCoordX;
-				int y2 = rooms.get(k).centerCoordY;
+				if(k != i) {
+					int x1 = rooms.get(i).centerCoordX;
+					int y1 = rooms.get(i).centerCoordY;
+					int x2 = rooms.get(k).centerCoordX;
+					int y2 = rooms.get(k).centerCoordY;
 
-				Double distance = Corridor.calculateDistanceBetweenPoints(x1, y1, x2, y2);
-				allDistances.add(distance);
-				
-				//----------------------- ERROR -----------------------//
-				if(roomsByDistance.size() < 4) {
-					roomsByDistance.add(rooms.get(k));
-					roomsDistance.add(distance);
-				}
-				else {
-					Double tempBiggestDistance = distance;
-					int tempRoomIndex = 0;
+					Double distance = Corridor.calculateDistanceBetweenPoints(x1, y1, x2, y2);
+					
+					if(roomsByDistance.size() < 4) {
+						roomsByDistance.add(rooms.get(k));
+						roomsDistance.add(distance);
+					}
+					else {
+						Double tempBiggestDistance = distance;
+						int tempRoomIndex = 0;
 
-					for(int z = 0; z < roomsDistance.size(); z++) {
-						if(roomsDistance.get(z) > tempBiggestDistance) {
-							// System.out.println("BOIIIIIIIIIIII");
-							tempBiggestDistance = roomsDistance.get(z);
-							tempRoomIndex = z;
+						for(int z = 0; z < roomsDistance.size(); z++) {
+							if(roomsDistance.get(z) > tempBiggestDistance) {
+								tempBiggestDistance = roomsDistance.get(z);
+								tempRoomIndex = z;
+							}
+						}
+
+						if (tempBiggestDistance != distance) {
+							roomsByDistance.set(tempRoomIndex, rooms.get(k));
+							roomsDistance.set(tempRoomIndex, distance);
 						}
 					}
 
-					if (tempBiggestDistance != distance) {
-						System.out.println("BOIIIIIIIIIIII");
-						roomsByDistance.set(tempRoomIndex, rooms.get(k));
-						roomsDistance.set(tempRoomIndex, distance);
-					}
 				}
-				//----------------------- ERROR -----------------------//
+		
 			}
 
-			Collections.sort(allDistances);
-
-			System.out.println(allDistances);
-			// System.out.println(roomsDistance);
 
 			//sort rooms by distance
 			Utils.bubbleSortRooms(roomsDistance, roomsByDistance);
 
-			System.out.println(roomsDistance);
-
-
-			//here sorted rooom distaces
 			//take between 1 and 4 closest rooms
 			int numOfConnections = (int) (Math.random()*(4 - 1)) + 1;
 
