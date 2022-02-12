@@ -41,15 +41,15 @@ public class Portal {
     this.leftX = this.coordX-16;
     this.leftY = this.coordY;
     this.leftHeight = this.height;
-    this.leftWidth = this.width/3;
+    this.leftWidth = this.width/2;
 
-    this.rightX = this.coordX + 2*(this.width/3)-16;
+    this.rightX = this.coordX + (this.width/2)-16;
     this.rightY = this.coordY;
     this.rightHeight = this.height;
-    this.rightWidth = this.width/3;
+    this.rightWidth = this.width/2;
 
-    this.leftRect = new Rectangle(this.leftX, this.leftY, this.leftWidth, this.leftHeight);
-    this.rightRect = new Rectangle(this.rightX, this.rightY, this.rightWidth, this.rightHeight);
+    this.leftRect = new Rectangle(this.leftX + 4, this.leftY + 2, this.leftWidth - 8, this.leftHeight - 4);
+    this.rightRect = new Rectangle(this.rightX + 4, this.rightY + 2, this.rightWidth - 8, this.rightHeight - 4);
 
     int pickVariation = (int) (Math.random()*(4 - 0 + 1 + 0));
     ArrayList<String> variations = new ArrayList<String>();
