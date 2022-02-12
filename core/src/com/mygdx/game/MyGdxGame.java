@@ -70,6 +70,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		float w = Gdx.graphics.getWidth();
 		float h = Gdx.graphics.getHeight();
 
+		int corridorTileX = 1;
+		int corridorTileY = 8;
+
+		int floorTileX = 1;
+		int floorTileY = 8;
+
+
 		camera = new OrthographicCamera();
 		// camera.setToOrtho(false, (w/h)*320, 320);
 		camera.setToOrtho(false, 1920, 1080);
@@ -165,7 +172,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				for(int x = coordX; x < coordX + width; x++) {
 
 					Cell cell = new Cell();
-					cell.setTile(new StaticTiledMapTile(splitTilesFloor[1][8]));
+					cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 					layer2.setCell(x, y, cell);
 
 				}
@@ -232,24 +239,82 @@ public class MyGdxGame extends ApplicationAdapter {
 				int x2 = roomsByDistance.get(z).centerCoordX;
 				int y2 = roomsByDistance.get(z).centerCoordY;
 
-				Cell cell1 = new Cell();
-				cell1.setTile(new StaticTiledMapTile(splitTilesCorridor[5][1]));
-				layer2.setCell(x1, y1, cell1);
+				ArrayList<Integer> chosenConnection = Corridor.chooseConnection(x1, y1, x2, y2);
 
-				Cell cell2 = new Cell();
-				cell2.setTile(new StaticTiledMapTile(splitTilesCorridor[8][1]));
-				layer2.setCell(x2, y2, cell2);
-				
-				
-			}
-
+				int chosenConnectionX = chosenConnection.get(0);
+				int chosenConnectionY = chosenConnection.get(1);
+				int chosenDirection = chosenConnection.get(2);
 
 			
-			// Cell cell = new Cell();
-			// cell.setTile(new StaticTiledMapTile(splitTilesCorridor[8][1]));
-			// int tempX = rooms.get(i).centerCoordX;
-			// int tempY = rooms.get(i).centerCoordY;
-			// layer2.setCell(tempX, tempY, cell);
+		
+				//up-1
+				if(x1 == chosenConnectionX && chosenConnectionY > y1) {
+					for(int k = y1; k < chosenConnectionY; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(x1, k, cell);
+					}
+				}
+				//down-1
+				else if(x1 == chosenConnectionX && chosenConnectionY < y1) {
+					for(int k = chosenConnectionY; k < y1; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(x1, k, cell);
+					}
+				}
+				//right-1
+				else if(y1 == chosenConnectionY && chosenConnectionX > x1) {
+					for(int k = x1; k < chosenConnectionX+1; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(k, y1, cell);
+					}
+				}
+				//left-1
+				else if(y1 == chosenConnectionY && chosenConnectionX < x1) {
+					for(int k = chosenConnectionX; k < x1; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(k, y1, cell);
+					}
+				}
+
+
+				//up-2
+				if(x2 == chosenConnectionX && chosenConnectionY > y2) {
+					for(int k = y2; k < chosenConnectionY; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(x2, k, cell);
+					}
+				}
+				//down-2
+				else if(x2 == chosenConnectionX && chosenConnectionY < y2) {
+					for(int k = chosenConnectionY; k < y2; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(x2, k, cell);
+					}
+				}
+				//right-2
+				else if(y2 == chosenConnectionY && chosenConnectionX > x2) {
+					for(int k = x2; k < chosenConnectionX+1; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(k, y2, cell);
+					}
+				}
+				//left-2
+				else if(y2 == chosenConnectionY && chosenConnectionX < x2) {
+					for(int k = chosenConnectionX; k < x2; k++) {
+						Cell cell = new Cell();
+						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+						layer2.setCell(k, y2, cell);
+					}
+				}	
+			}
+
 		}
 
 
