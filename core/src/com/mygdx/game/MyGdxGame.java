@@ -248,23 +248,15 @@ public class MyGdxGame extends ApplicationAdapter {
 
 
 		w = Gdx.graphics.getWidth();
-	  h = Gdx.graphics.getHeight();
+        h = Gdx.graphics.getHeight();
 
-	  viewPortWidth = (w/h)*320;
-	  viewPortHeight = 320;
+        viewPortWidth = (w/h)*320;
+        viewPortHeight = 320;
 		
-		// camera = new OrthographicCamera((w/h)*320, 320);
-		// camera.setToOrtho(false, (w/h)*320, 320);
-		// // camera.setToOrtho(true, 1920, 1080);
-		// camera.update();
-
 		camera = new OrthographicCamera();  // The camera will take the viewport (what you can see looking through the camera) of the screen size (1280, 720) if you don't specify otherwise
 		camera.setToOrtho(false, viewPortWidth, viewPortHeight); // We want (0,0) in the bottom left corner
 		camera.position.set(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 0); // this will render the camera so that 0,0 (of everything inside batch.begin() - batch.end()) will be rendered at 0,0 on your screen
 		camera.update(); // Updates the camera
-
-		// cameraController = new OrthoCamController(camera);
-		// Gdx.input.setInputProcessor(cameraController);
 
 		font = new BitmapFont();
 		batch = new SpriteBatch();
@@ -282,18 +274,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				// int tx = (int)(Math.random() * splitTiles[ty].length);
 				
 				//----------------------- SELECT TYPE OF WALL -----------------------//
-				// if (Math.random() <= 1) {
-				// 	tileCoordX = 0;
-				// 	tileCoordY = 3;
-				// }
-				// else if (Math.random() < 0.95) {
-				// 	tileCoordX = 0;
-				// 	tileCoordY = 1;
-				// }
-				// else {
-				// 	tileCoordX = 0;
-				// 	tileCoordY = 0;
-				// }
 				Cell cell = new Cell();
 				cell.setTile(new StaticTiledMapTile(splitTiles[tileCoordX][tileCoordY]));
 				layer1.setCell(x, y, cell);
@@ -679,7 +659,6 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 
             collisionLayer.add(new Rectangle(coordX*tileSize, coordY*tileSize, width*tileSize, height*tileSize));
-            //collisionLayerBoolean[coordY][coordX] = 1;
         }
 
 		int endRoomCoordX = customRooms.get(1).coordX;
@@ -701,12 +680,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		layers.add(layer2);
 
 		//----------------------- PLAYER/ITEM/MONSTERS - LAYER 3 -----------------------//
-		// player = new Texture("player_right.png");
-		// TextureRegion[][] splitTilesPlayer = TextureRegion.split(player, 48, 48);
-		// TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
-		// Cell cell = new Cell();
-		// cell.setTile(new StaticTiledMapTile(splitTilesPlayer[0][0]));
-		// layer3.setCell(customRooms.get(0).centerCoordX - 1, customRooms.get(0).centerCoordY, cell);
 
 		playerSprite = new Texture("player_right.png");
 		TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
@@ -737,29 +710,11 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		layers.add(layer3);
 
-        
-
-
-        // //create final collsion layer
-        // for(int i=0; i< collisionLayerBoolean.length; i--) {
-        //     for(int j=0; j< collisionLayerBoolean[i].length; j++) {
-        //             if(collisionLayerBoolean[i][j] == 0) {
-        //                 finalCollisionLayer.add(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
-        //                 //System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
-        //             }
-        //     }
-        // }
-
         //create final collsion layer
         for(int i=0; i< collisionLayerBoolean.length; i++) {
             for(int j=0; j< collisionLayerBoolean[i].length; j++) {
                     if(collisionLayerBoolean[i][j] == 0) {
                         finalCollisionLayer.add(new Rectangle(i*tileSize - tileSize, j*tileSize, tileSize, tileSize));
-                        //System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
-                    }
-                    else {
-                        System.out.println(new Rectangle(i*tileSize, j*tileSize, tileSize, tileSize));
-                        System.out.println("=====================");
                     }
             }
         }
@@ -824,11 +779,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		renderer.render();
         batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 
-        // for (int i = 0; i < finalCollisionLayer.size(); i++) {
-        //     Rectangle currentRectangle = finalCollisionLayer.get(i);
-        //     batch.draw(textureTest, currentRectangle.x, currentRectangle.y);
-        // }
-
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 		batch.end();
 
@@ -840,7 +790,6 @@ public class MyGdxGame extends ApplicationAdapter {
         
         for(int i=0; i<finalCollisionLayer.size(); i++) {
             if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
-                System.out.println("COLLIDE");
 
                 float pLeft = player.body.x;
                 float pRight = player.body.x + player.body.width;
@@ -852,34 +801,6 @@ public class MyGdxGame extends ApplicationAdapter {
                 float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
                 float wBot = finalCollisionLayer.get(i).y;
 
-                
-                
-                //  //bottom left
-                //  if (pLeft < wLeft && pRight > wLeft &&
-                //     pTop > wBot && pBot < wBot) {
-                //     player.body.x += player.speed;
-                //     player.body.y += player.speed;
-                // }
-                // //bottom right
-                // else if (pLeft < wRight && pRight > wRight &&
-                //         pTop > wBot && pBot < wBot) {
-                //     player.body.x -= player.speed;
-                //     player.body.y += player.speed;
-                // }
-                // //top right
-                // else if (pLeft < wRight && pRight > wRight &&
-                //         pTop > wTop && pBot < wTop) {
-                //     player.body.x -= player.speed;
-                //     player.body.y -= player.speed;
-                // }
-                // //top left
-                // else if (pLeft < wLeft && pRight > wLeft &&
-                //         pTop > wTop && pBot < wTop) {
-                //     player.body.x += player.speed;
-                //     player.body.y -= player.speed;
-                // }
-
-
 
                 if(animationPortalCounter < 6*9) {
                     animationPortalCounter++;
@@ -890,55 +811,6 @@ public class MyGdxGame extends ApplicationAdapter {
                 else {
                     animationPortalCounter = 0;
                 }
-
-                // //left
-                // if (pLeft < wRight && pRight > wRight) {
-                //     canMoveLeft = false;
-                //     //up
-                //     if (pTop > wBot && pBot < wBot) {
-                //         canMoveUp = false;
-                //     }
-                //     //down
-                //     else if (pTop > wTop && pBot < wTop) {
-                //         canMoveDown = false;
-                //     }
-                // }
-                // //right
-                // else if (pLeft < wLeft && pRight > wLeft) {
-                //     canMoveRight = false;
-                //     //up
-                //     if (pTop > wBot && pBot < wBot) {
-                //         canMoveUp = false;
-                //     }
-                //     //down
-                //     else if (pTop > wTop && pBot < wTop) {
-                //         canMoveDown = false;
-                //     }
-                // }
-                // //up
-                // else if(pTop > wBot && pBot < wBot) {
-                //     canMoveUp = false;
-                //     //left
-                //     if (pLeft < wRight && pRight > wRight) {
-                //         canMoveLeft = false;
-                //     }
-                //     //right
-                //     else if (pLeft < wLeft && pRight > wLeft){
-                //         canMoveRight = false;
-                //     }
-                // }
-                // //down
-                // else if(pTop > wTop && pBot < wTop) {
-                //     canMoveDown = false;
-                //     //left
-                //     if (pLeft < wRight && pRight > wRight) {
-                //         canMoveLeft = false;
-                //     }
-                //     //right
-                //     else if (pLeft < wLeft && pRight > wLeft){
-                //         canMoveRight = false;
-                //     }
-                // }
                 
                 //left
                 if(pLeft < wRight && pRight > wRight) {
@@ -975,11 +847,7 @@ public class MyGdxGame extends ApplicationAdapter {
                 
             }
             
-            
         }
-       
-
-		
 		
 
 		if(controller.left && canMoveLeft){	
@@ -1000,6 +868,15 @@ public class MyGdxGame extends ApplicationAdapter {
 		if(controller.up && canMoveUp){
 			player.body.y += player.speed;
 		} 
+
+        //check for collision with portal
+        if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle())) {
+            System.out.println("LEFT PORTAL");
+        }
+
+        if(Intersector.intersectRectangles(player.body, portal.rightRect, new Rectangle())) {
+            System.out.println("RIGHT PORTAL");
+        }
 
 
         if(animationUnstuckCounter < 6*9) {
