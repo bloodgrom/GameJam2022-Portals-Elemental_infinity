@@ -129,13 +129,34 @@ public class MyGdxGame extends ApplicationAdapter {
 		layers.add(layer1);
 		
 		//----------------------- ROOM GENERATION -----------------------//
+		TiledMapTileLayer layer2 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
 		int num_of_rooms = (int) (Math.random()*(Room.MAX_NUM_ROOMS-Room.MIN_NUM_ROOMS)) + Room.MIN_NUM_ROOMS;
 		ArrayList<Room> rooms = new ArrayList<Room>();
 
-		// //here add custom rooms
-		rooms.addAll(Room.generateCustomRooms());
+		//here add custom rooms
+		ArrayList<Room> customRooms = new ArrayList<Room>();
+		customRooms.addAll(Room.generateCustomRooms());
 
-		for(int i = 0; i < num_of_rooms; i++) {
+		rooms.add(customRooms.get(0));
+
+		tilesFloor = new Texture("Dungeon_Tileset.png");
+		TextureRegion[][] splitTilesFloor = TextureRegion.split(tilesFloor, 16, 16);
+
+		int firstRoomCoordX = customRooms.get(0).coordX;
+		int firstRoomCoordY = customRooms.get(0).coordY;
+		int firstRoomWidth = customRooms.get(0).width;
+		int firstRoomHeight = customRooms.get(0).height;
+
+		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
+			for(int x = firstRoomCoordX; x < firstRoomCoordX + firstRoomWidth; x++) {
+				Cell cellFirst = new Cell();
+				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
+				layer2.setCell(x, y, cellFirst);
+
+			}
+		}
+
+		for(int i = 1; i < num_of_rooms; i++) {
 
 			//generate width and height for room
 			int roomWidth = (int) (Math.random()*(Room.MAX_WIDTH-Room.MIN_WIDTH)) + Room.MIN_WIDTH;
@@ -149,184 +170,204 @@ public class MyGdxGame extends ApplicationAdapter {
 				
 				Room newRoom = new Room(coordX, coordY, roomWidth, roomHeight);
 
-				if(!newRoom.checkRoomIntersects(rooms)) {
+				if((!newRoom.checkRoomIntersects(rooms)) && (!newRoom.checkRoomIntersects(customRooms))) {
 					intersect = false;
 					rooms.add(newRoom);
 					break;
 				}
 			}
-		}
 
+			if(i != num_of_rooms - 1) {
+				//----------------------- FLOOR SECTION -----------------------//
+				int coordX = rooms.get(i).coordX;
+				int coordY = rooms.get(i).coordY;
 
-		//----------------------- FLOOR SECTION -----------------------//
-		tilesFloor = new Texture("Dungeon_Tileset.png");
-		TextureRegion[][] splitTilesFloor = TextureRegion.split(tilesFloor, 16, 16);
-		TiledMapTileLayer layer2 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 16, 16);
-		
-		for(int i = 0; i < rooms.size(); i++) {
-			int coordX = rooms.get(i).coordX;
-			int coordY = rooms.get(i).coordY;
+				int width = rooms.get(i).width;
+				int height = rooms.get(i).height;
 
-			int width = rooms.get(i).width;
-			int height = rooms.get(i).height;
-
-			for(int y = coordY; y < coordY + height; y++) {
-				for(int x = coordX; x < coordX + width; x++) {
-
-					if (i == 0) {
+				for(int y = coordY; y < coordY + height; y++) {
+					for(int x = coordX; x < coordX + width; x++) {
 						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesFloor[4][4]));
+						cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 						layer2.setCell(x, y, cell);
+				
 					}
-					else if(i == 1) {
+				}
+			}
+			else {
+				rooms.add(customRooms.get(1));
+
+				int endRoomCoordX = customRooms.get(1).coordX;
+				int endRoomCoordY = customRooms.get(1).coordY;
+				int endRoomWidth = customRooms.get(1).width;
+				int endRoomHeight = customRooms.get(1).height;
+
+				for(int y = endRoomCoordY; y < endRoomCoordY + endRoomHeight; y++) {
+					for(int x = endRoomCoordX; x < endRoomCoordX + endRoomWidth; x++) {
 						Cell cell = new Cell();
 						cell.setTile(new StaticTiledMapTile(splitTilesFloor[0][3]));
 						layer2.setCell(x, y, cell);
 					}
-					else {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
-						layer2.setCell(x, y, cell);
-					}
 				}
 			}
-		}
 
-		//----------------------- COORIDOR SECTION -----------------------//
-		tilesCorridor = new Texture("Dungeon_Tileset.png");
-		TextureRegion[][] splitTilesCorridor = TextureRegion.split(tilesFloor, 16, 16);
+			//----------------------- CORIDOR SECTION -----------------------//
+			tilesCorridor = new Texture("Dungeon_Tileset.png");
+			TextureRegion[][] splitTilesCorridor = TextureRegion.split(tilesFloor, 16, 16);
 
-		for(int i = 0; i < rooms.size(); i++) {
-			ArrayList<Room> roomsByDistance = new ArrayList<>();
-			ArrayList<Double> roomsDistance = new ArrayList<>();
+			for(int l = 0; l < rooms.size(); l++) {
+				ArrayList<Room> roomsByDistance = new ArrayList<>();
+				ArrayList<Double> roomsDistance = new ArrayList<>();
 
-			for(int k = 0; k < rooms.size(); k++) {
+				for(int k = 0; k < rooms.size(); k++) {
 
-				if(k != i) {
-					int x1 = rooms.get(i).centerCoordX;
-					int y1 = rooms.get(i).centerCoordY;
-					int x2 = rooms.get(k).centerCoordX;
-					int y2 = rooms.get(k).centerCoordY;
+					if(k != l) {
+						int x1 = rooms.get(l).centerCoordX;
+						int y1 = rooms.get(l).centerCoordY;
+						int x2 = rooms.get(k).centerCoordX;
+						int y2 = rooms.get(k).centerCoordY;
 
-					Double distance = Corridor.calculateDistanceBetweenPoints(x1, y1, x2, y2);
-					
-					if(roomsByDistance.size() < 4) {
-						roomsByDistance.add(rooms.get(k));
-						roomsDistance.add(distance);
-					}
-					else {
-						Double tempBiggestDistance = distance;
-						int tempRoomIndex = 0;
+						Double distance = Corridor.calculateDistanceBetweenPoints(x1, y1, x2, y2);
+						
+						if(roomsByDistance.size() < 4) {
+							roomsByDistance.add(rooms.get(k));
+							roomsDistance.add(distance);
+						}
+						else {
+							Double tempBiggestDistance = distance;
+							int tempRoomIndex = 0;
 
-						for(int z = 0; z < roomsDistance.size(); z++) {
-							if(roomsDistance.get(z) > tempBiggestDistance) {
-								tempBiggestDistance = roomsDistance.get(z);
-								tempRoomIndex = z;
+							for(int z = 0; z < roomsDistance.size(); z++) {
+								if(roomsDistance.get(z) > tempBiggestDistance) {
+									tempBiggestDistance = roomsDistance.get(z);
+									tempRoomIndex = z;
+								}
+							}
+
+							if (tempBiggestDistance != distance) {
+								roomsByDistance.set(tempRoomIndex, rooms.get(k));
+								roomsDistance.set(tempRoomIndex, distance);
 							}
 						}
 
-						if (tempBiggestDistance != distance) {
-							roomsByDistance.set(tempRoomIndex, rooms.get(k));
-							roomsDistance.set(tempRoomIndex, distance);
+					}
+			
+				}
+
+
+				//sort rooms by distance
+				Utils.bubbleSortRooms(roomsDistance, roomsByDistance);
+
+				int numOfConnections;
+
+				// //take between 1 and 4 closest rooms
+				// if(rooms.size() < 15) {
+				// 	numOfConnections = 1;
+				// }
+				// else {
+				// 	numOfConnections = (int) (Math.random()*(2 - 1)) + 1;
+				// }
+
+				numOfConnections = 1;
+
+				//draw corridors between room i and chosen rooms
+				for(int z = 0; z < numOfConnections; z++) {
+					int x1 = rooms.get(l).centerCoordX;
+					int y1 = rooms.get(l).centerCoordY;
+
+					int x2 = roomsByDistance.get(z).centerCoordX;
+					int y2 = roomsByDistance.get(z).centerCoordY;
+
+					ArrayList<Integer> chosenConnection = Corridor.chooseConnection(x1, y1, x2, y2);
+
+					int chosenConnectionX = chosenConnection.get(0);
+					int chosenConnectionY = chosenConnection.get(1);
+					int chosenDirection = chosenConnection.get(2);
+
+				
+			
+					//up-1
+					if(x1 == chosenConnectionX && chosenConnectionY > y1) {
+						for(int k = y1; k < chosenConnectionY; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(x1, k, cell);
+						}
+					}
+					//down-1
+					else if(x1 == chosenConnectionX && chosenConnectionY < y1) {
+						for(int k = chosenConnectionY; k < y1; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(x1, k, cell);
+						}
+					}
+					//right-1
+					else if(y1 == chosenConnectionY && chosenConnectionX > x1) {
+						for(int k = x1; k < chosenConnectionX+1; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(k, y1, cell);
+						}
+					}
+					//left-1
+					else if(y1 == chosenConnectionY && chosenConnectionX < x1) {
+						for(int k = chosenConnectionX; k < x1; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(k, y1, cell);
 						}
 					}
 
+
+					//up-2
+					if(x2 == chosenConnectionX && chosenConnectionY > y2) {
+						for(int k = y2; k < chosenConnectionY; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(x2, k, cell);
+						}
+					}
+					//down-2
+					else if(x2 == chosenConnectionX && chosenConnectionY < y2) {
+						for(int k = chosenConnectionY; k < y2; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(x2, k, cell);
+						}
+					}
+					//right-2
+					else if(y2 == chosenConnectionY && chosenConnectionX > x2) {
+						for(int k = x2; k < chosenConnectionX+1; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(k, y2, cell);
+						}
+					}
+					//left-2
+					else if(y2 == chosenConnectionY && chosenConnectionX < x2) {
+						for(int k = chosenConnectionX; k < x2; k++) {
+							Cell cell = new Cell();
+							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
+							layer2.setCell(k, y2, cell);
+						}
+					}	
 				}
-		
+
 			}
 
 
-			//sort rooms by distance
-			Utils.bubbleSortRooms(roomsDistance, roomsByDistance);
 
-			//take between 1 and 4 closest rooms
-			int numOfConnections = (int) (Math.random()*(4 - 1)) + 1;
 
-			//draw corridors between room i and chosen rooms
-			for(int z = 0; z < numOfConnections; z++) {
-				int x1 = rooms.get(i).centerCoordX;
-				int y1 = rooms.get(i).centerCoordY;
 
-				int x2 = roomsByDistance.get(z).centerCoordX;
-				int y2 = roomsByDistance.get(z).centerCoordY;
-
-				ArrayList<Integer> chosenConnection = Corridor.chooseConnection(x1, y1, x2, y2);
-
-				int chosenConnectionX = chosenConnection.get(0);
-				int chosenConnectionY = chosenConnection.get(1);
-				int chosenDirection = chosenConnection.get(2);
 
 			
-		
-				//up-1
-				if(x1 == chosenConnectionX && chosenConnectionY > y1) {
-					for(int k = y1; k < chosenConnectionY; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(x1, k, cell);
-					}
-				}
-				//down-1
-				else if(x1 == chosenConnectionX && chosenConnectionY < y1) {
-					for(int k = chosenConnectionY; k < y1; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(x1, k, cell);
-					}
-				}
-				//right-1
-				else if(y1 == chosenConnectionY && chosenConnectionX > x1) {
-					for(int k = x1; k < chosenConnectionX+1; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(k, y1, cell);
-					}
-				}
-				//left-1
-				else if(y1 == chosenConnectionY && chosenConnectionX < x1) {
-					for(int k = chosenConnectionX; k < x1; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(k, y1, cell);
-					}
-				}
-
-
-				//up-2
-				if(x2 == chosenConnectionX && chosenConnectionY > y2) {
-					for(int k = y2; k < chosenConnectionY; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(x2, k, cell);
-					}
-				}
-				//down-2
-				else if(x2 == chosenConnectionX && chosenConnectionY < y2) {
-					for(int k = chosenConnectionY; k < y2; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(x2, k, cell);
-					}
-				}
-				//right-2
-				else if(y2 == chosenConnectionY && chosenConnectionX > x2) {
-					for(int k = x2; k < chosenConnectionX+1; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(k, y2, cell);
-					}
-				}
-				//left-2
-				else if(y2 == chosenConnectionY && chosenConnectionX < x2) {
-					for(int k = chosenConnectionX; k < x2; k++) {
-						Cell cell = new Cell();
-						cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-						layer2.setCell(k, y2, cell);
-					}
-				}	
-			}
-
 		}
+		//ENDS HERE
+
+
+
+		
 
 
 		layers.add(layer2);
