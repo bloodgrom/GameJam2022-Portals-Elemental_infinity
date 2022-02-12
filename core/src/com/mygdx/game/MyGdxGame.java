@@ -51,20 +51,31 @@ public class MyGdxGame extends ApplicationAdapter {
 	float w;
 	float h;
 
+	float viewPortWidth;
+	float viewPortHeight;
+
+	int counter;
+
+
 	@Override
 	public void create () {
 
+		counter = 0;
+
 		controller = new KeyboardController();
 		Gdx.input.setInputProcessor(controller);
-
-		w = Gdx.graphics.getWidth();
-		h = Gdx.graphics.getHeight();
 
 		int corridorTileX = 1;
 		int corridorTileY = 8;
 
 		int floorTileX = 4;
 		int floorTileY = 4;
+
+		w = Gdx.graphics.getWidth();
+	  h = Gdx.graphics.getHeight();
+
+	  viewPortWidth = (w/h)*320;
+	  viewPortHeight = 320;
 		
 		// camera = new OrthographicCamera((w/h)*320, 320);
 		// camera.setToOrtho(false, (w/h)*320, 320);
@@ -72,7 +83,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// camera.update();
 
 		camera = new OrthographicCamera();  // The camera will take the viewport (what you can see looking through the camera) of the screen size (1280, 720) if you don't specify otherwise
-		camera.setToOrtho(false, (w/h)*320, 320); // We want (0,0) in the bottom left corner
+		camera.setToOrtho(false, viewPortWidth, viewPortHeight); // We want (0,0) in the bottom left corner
 		camera.position.set(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 0); // this will render the camera so that 0,0 (of everything inside batch.begin() - batch.end()) will be rendered at 0,0 on your screen
 		camera.update(); // Updates the camera
 
@@ -389,30 +400,63 @@ public class MyGdxGame extends ApplicationAdapter {
 	public void render () {
 		ScreenUtils.clear(100f / 255f, 100f / 255f, 250f / 255f, 1f);
 
+		if(counter < 1) {
+			camera.position.x = player.body.x + player.width/2;
+			camera.position.y = player.body.y + player.height/2;
+		}
 
-		camera.position.set(player.body.x, player.body.y, 0); // x and y could be changed by Keyboard input for example
+		counter++;
+		if(((player.body.x + viewPortWidth/2 > 1920 - 16) && (player.body.y + viewPortHeight/2 > 1080)) || 
+			((player.body.x - viewPortWidth/2 < 0) && (player.body.y + viewPortHeight/2 > 1080)) ||
+			((player.body.x + viewPortWidth/2 > 1920 -16) && (player.body.y - viewPortHeight/2 < 0)) ||
+			((player.body.x - viewPortWidth/2 < 0) && (player.body.y - viewPortHeight/2 < 0))) {
+			
+		}
+		else if((player.body.x + viewPortWidth/2 > 1920 - 16) || (player.body.x - viewPortWidth/2 < 0)) {
+			camera.position.y = player.body.y + player.height/2;
+		}
+		else if ((player.body.y + viewPortHeight/2 > 1080) || (player.body.y - viewPortHeight/2 < 0)) {
+			camera.position.x = player.body.x + player.width/2;
+		}
+		else {
+			camera.position.x = player.body.x + player.width/2;
+			camera.position.y = player.body.y + player.height/2;
+		}
+	
+		System.out.println("----------------------- VALUES 1-----------------------");
+		System.out.println(player.body.x);
+		System.out.println(viewPortWidth/2);
+		System.out.println("----------------------- VALUES 2-----------------------");
+		System.out.println(player.body.y);
+		System.out.println(viewPortHeight/2);
+		System.out.println("----------------------- VALUES 3-----------------------");
+
+
+		// camera.position.x = player.body.x + player.width/2;
+		// camera.position.y = player.body.y + player.height/2;
+		// camera.position.set(player.body.x + player.width/2, player.body.y + player.height/2, 0); // x and y could be changed by Keyboard input for example
 		camera.update(); // Don't forget me ;)
 		batch.setProjectionMatrix(camera.combined); // Tells the spritebatch to render according to your camera
 		batch.begin();
-		font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+		// font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
 		renderer.setView(camera);
 		renderer.render();
 		batch.draw(bucketImage, player.body.x, player.body.y);
 		batch.end();
 
 		if(controller.left){
-			player.body.x -= 1;
+			player.body.x -= 5;
 			// playerSprite = new Texture("player_right.png");
 			// TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
 		} 
 		if(controller.right){
-			player.body.x += 1;
+			player.body.x += 5;
 		} 
 		if(controller.down){
-			player.body.y -= 1;
+			player.body.y -= 5;
 		} 
 		if(controller.up){
-			player.body.y += 1;
+			player.body.y += 5;
 		} 
 	}
 
