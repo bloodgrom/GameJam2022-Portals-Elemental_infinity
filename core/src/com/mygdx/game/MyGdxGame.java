@@ -46,7 +46,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Texture additionalWalls;
 	private Texture playerSprite;
 	private Texture texture;
-    private Texture textureTest;
+  private Texture textureTest;
 	private BitmapFont font;
 	private SpriteBatch batch;
 	public KeyboardController controller;
@@ -108,30 +108,36 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	TextureRegion[][] splitTiles;
 
+	boolean portalTouched;
+
 
 	int additionalWallsVerticalX;
 	int additionalWallsVerticalY;
 
 	ArrayList<Rectangle> collisionLayer;
 
-    //0 is wall, 1 is floor
-    int[][] collisionLayerBoolean;
+	//0 is wall, 1 is floor
+	int[][] collisionLayerBoolean;
 
-    ArrayList<Rectangle> finalCollisionLayer;
+	ArrayList<Rectangle> finalCollisionLayer;
 
-    int tileSize;
+	int tileSize;
+
+	
 
 
 	@Override
 	public void create () {
 
-        collisionLayerBoolean = new int[numTilesHorizontal][numTilesVertical];
+		portalTouched = false;
 
-        for (int row = 0; row < collisionLayerBoolean.length; row++) {
-            for (int col = 0; col < collisionLayerBoolean[row].length; col++) {
-                collisionLayerBoolean[row][col] = 0;
-            }
-        }
+		collisionLayerBoolean = new int[numTilesHorizontal][numTilesVertical];
+
+		for (int row = 0; row < collisionLayerBoolean.length; row++) {
+				for (int col = 0; col < collisionLayerBoolean[row].length; col++) {
+						collisionLayerBoolean[row][col] = 0;
+				}
+		}
 
 		counter = 0;
         animationPortalCounter = 0;
@@ -777,77 +783,76 @@ public class MyGdxGame extends ApplicationAdapter {
 		// font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
 		renderer.setView(camera);
 		renderer.render();
-        batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
-
+		batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 		batch.end();
 
-        boolean canMoveUp = true;
-        boolean canMoveDown = true;
-        boolean canMoveLeft = true;
-        boolean canMoveRight = true;
+		boolean canMoveUp = true;
+		boolean canMoveDown = true;
+		boolean canMoveLeft = true;
+		boolean canMoveRight = true;
 
-        
-        for(int i=0; i<finalCollisionLayer.size(); i++) {
-            if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
+		
+		for(int i=0; i<finalCollisionLayer.size(); i++) {
+				if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
 
-                float pLeft = player.body.x;
-                float pRight = player.body.x + player.body.width;
-                float pTop = player.body.y + player.body.height;
-                float pBot = player.body.y;
+						float pLeft = player.body.x;
+						float pRight = player.body.x + player.body.width;
+						float pTop = player.body.y + player.body.height;
+						float pBot = player.body.y;
 
-                float wLeft = finalCollisionLayer.get(i).x;
-                float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
-                float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
-                float wBot = finalCollisionLayer.get(i).y;
+						float wLeft = finalCollisionLayer.get(i).x;
+						float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
+						float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
+						float wBot = finalCollisionLayer.get(i).y;
 
 
-                if(animationPortalCounter < 6*9) {
-                    animationPortalCounter++;
-                    if(animationPortalCounter % 9 == 0 ) {
-                        portal.currentTexture = portal_variations.get(animationPortalCounter/9);
-                    }
-                }
-                else {
-                    animationPortalCounter = 0;
-                }
-                
-                //left
-                if(pLeft < wRight && pRight > wRight) {
-                    canMoveLeft = false;
-                    
-                }
-                //right
-                if(pLeft < wLeft && pRight > wLeft) {
-                    canMoveRight = false;
-                    
-                }
-                //up
-                if(pTop > wBot && pBot < wBot) {
-                    canMoveUp = false;
-                    
-                }
-                //down
-                if(pTop > wTop && pBot < wTop) {
-                    canMoveDown = false;
-                    
-                }
+						if(animationPortalCounter < 6*9) {
+								animationPortalCounter++;
+								if(animationPortalCounter % 9 == 0 ) {
+										portal.currentTexture = portal_variations.get(animationPortalCounter/9);
+								}
+						}
+						else {
+								animationPortalCounter = 0;
+						}
+						
+						//left
+						if(pLeft < wRight && pRight > wRight) {
+								canMoveLeft = false;
+								
+						}
+						//right
+						if(pLeft < wLeft && pRight > wLeft) {
+								canMoveRight = false;
+								
+						}
+						//up
+						if(pTop > wBot && pBot < wBot) {
+								canMoveUp = false;
+								
+						}
+						//down
+						if(pTop > wTop && pBot < wTop) {
+								canMoveDown = false;
+								
+						}
 
-                if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
-                    if(player.body.x == previousCoordX && player.body.y == previousCoordY) {
-                        player.body.x = initialCoordsX;
-                        player.body.y = initialCoordsY;
-                    }
-                    else {
-                        player.body.x = previousCoordX;
-                        player.body.y = previousCoordY;
-                    }
-                }
+						if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
+								if(player.body.x == previousCoordX && player.body.y == previousCoordY) {
+										player.body.x = initialCoordsX;
+										player.body.y = initialCoordsY;
+								}
+								else {
+										player.body.x = previousCoordX;
+										player.body.y = previousCoordY;
+								}
+						}
 
-                
-            }
-            
-        }
+						
+				}
+				
+		}
 		
 
 		if(controller.left && canMoveLeft){	
@@ -869,27 +874,18 @@ public class MyGdxGame extends ApplicationAdapter {
 			player.body.y += player.speed;
 		} 
 
-        //check for collision with portal
-        if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle())) {
-            System.out.println("LEFT PORTAL");
-        }
+		//check for collision with portal
+		if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle()) && !portalTouched) {
+				portalTouched = true;
+				System.out.println("LEFT PORTAL");
+				this.create();
+		}
 
-        if(Intersector.intersectRectangles(player.body, portal.rightRect, new Rectangle())) {
-            System.out.println("RIGHT PORTAL");
-        }
-
-
-        if(animationUnstuckCounter < 6*9) {
-            animationUnstuckCounter++;
-            if(animationUnstuckCounter % 9 == 0 ) {
-                previousCoordX = player.body.x;
-                previousCoordY = player.body.y;
-            }
-        }
-        else {
-            animationUnstuckCounter = 0;
-        }
-
+		if(Intersector.intersectRectangles(player.body, portal.rightRect, new Rectangle()) && !portalTouched) {
+				portalTouched = true;
+				System.out.println("RIGHT PORTAL");
+				this.create();
+		}
 	}
 
 	
