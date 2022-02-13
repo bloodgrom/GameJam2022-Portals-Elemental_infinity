@@ -59,7 +59,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	public KeyboardController controller;
 
 	private Texture bucketImage;
-	
+	public int monsterVelocityCounter;
 
 	public static int numTilesHorizontal = 120;
 	public static int numTilesVertical = 68;
@@ -148,20 +148,36 @@ public class MyGdxGame extends ApplicationAdapter {
 	Stage stage;
 
     ArrayList<Spike> spikes;
+    ArrayList<Potion> potions;
 
     Texture pressKeyReset;
 
+    int numSpikesPerRoom;
+
+    float enemyDamage;
+    float enemySpeed;
+
 	@Override
 	public void create () {
+
+			monsterVelocityCounter = 0;
 
         
 
         if(levelCounter == null || !isAlive) {
 			levelVariationName = "";
 			levelCounter = 1;
+            numSpikesPerRoom = 1;
+            enemyDamage = 0.1f;
+            enemySpeed = 1.0f/3.0f;
 		}
 		else {
 			levelCounter ++;
+            enemyDamage += 0.01f;
+            if(levelCounter % 2 == 0) {
+                enemySpeed += ((1/10)*enemySpeed) + enemySpeed;
+            }
+            
 		}
 
         isAlive = true;
@@ -170,52 +186,64 @@ public class MyGdxGame extends ApplicationAdapter {
         fog_of_war = new Texture("fog.v4.png");
         dead_screen = new Texture("dead_logo_new_final.png");
         pressKeyReset = new Texture("press_key_reset.png");
+
+        if(levelCounter % 3 == 0) {
+            numSpikesPerRoom++;
+        }
         
 
 		//------------------------------------HEALTH BAR START------------------------------------//
 
-		Pixmap pixmap = new Pixmap(100, 20, Format.RGBA8888);
-		pixmap.setColor(Color.RED);
-		pixmap.fill();
+        if(levelCounter==1) {
 
-		TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
-		drawable.setMinHeight(50.0f);
-        pixmap.dispose();
+            Pixmap pixmap = new Pixmap(100, 20, Format.RGBA8888);
+            pixmap.setColor(Color.RED);
+            pixmap.fill();
 
-		ProgressBarStyle progressBarStyle = new ProgressBarStyle();
-		progressBarStyle.background = drawable;
+            TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+            drawable.setMinHeight(50.0f);
+            pixmap.dispose();
 
-		pixmap = new Pixmap(0, 20, Format.RGBA8888);
-		pixmap.setColor(Color.GREEN);
-		pixmap.fill();
-		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+            ProgressBarStyle progressBarStyle = new ProgressBarStyle();
+            progressBarStyle.background = drawable;
+
+            pixmap = new Pixmap(0, 20, Format.RGBA8888);
+            pixmap.setColor(Color.GREEN);
+            pixmap.fill();
+            drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+            
+            pixmap.dispose();
+            
+            progressBarStyle.knob = drawable;
+
+            pixmap = new Pixmap(100, 20, Format.RGBA8888);
+            pixmap.setColor(Color.GREEN);
+            pixmap.fill();
+            drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+            drawable.setMinHeight(50.0f);
+            pixmap.dispose();
+            
+            progressBarStyle.knobBefore = drawable;
         
-		pixmap.dispose();
-		
-		progressBarStyle.knob = drawable;
 
-		pixmap = new Pixmap(100, 20, Format.RGBA8888);
-		pixmap.setColor(Color.GREEN);
-		pixmap.fill();
-		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
-        drawable.setMinHeight(50.0f);
-		pixmap.dispose();
-		
-		progressBarStyle.knobBefore = drawable;
-	
+            stage = new Stage();
+    
+            healthBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
+            
+            healthBar.setValue(1.0f);
+            
+            
+            healthBar.setAnimateDuration(0.25f);
+            healthBar.setBounds(30, 1080-140, 500, 200);
+            
+            stage.addActor(healthBar);
 
-		stage = new Stage();
- 
-		healthBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
-		healthBar.setValue(1.0f);
-		healthBar.setAnimateDuration(0.25f);
-		healthBar.setBounds(30, 1080-140, 500, 200);
-		
-		stage.addActor(healthBar);
+        }
 
 		//------------------------------------HEALTH BAR END------------------------------------//
 		
         spikes = new ArrayList<>();
+        potions = new ArrayList<>();
 
 		animationRunLeftCounter = 0;
 		animationRunRightCounter = 0;
@@ -310,6 +338,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			tileCoordX = 0;
 			tileCoordY = 0;
+
+			levelVariationName = "fire";
 		}
 
 		else if(levelVariationName.equals("ice") || (pickTileSet==1 && levelCounter==1)) {
@@ -319,6 +349,8 @@ public class MyGdxGame extends ApplicationAdapter {
 			tileCoordX = 0;
 			tileCoordY = 0;
 
+			levelVariationName = "ice";
+
 		}
 
 		else if(levelVariationName.equals("water") || (pickTileSet==2 && levelCounter==1)) {
@@ -327,6 +359,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			tileCoordX = 0;
 			tileCoordY = 2;
+
+			levelVariationName = "water";
 		}
 
 		else if(levelVariationName.equals("nature") || (pickTileSet==3 && levelCounter==1)){
@@ -335,6 +369,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			tileCoordX = 2;
 			tileCoordY = 11;
+
+			levelVariationName = "nature";
 
 		}
 
@@ -781,7 +817,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		layers.add(layer3);
 
-        //create final collsion layer
+        //create final collision layer
         for(int i=0; i< collisionLayerBoolean.length; i++) {
             for(int j=0; j< collisionLayerBoolean[i].length; j++) {
                     if(collisionLayerBoolean[i][j] == 0) {
@@ -794,16 +830,52 @@ public class MyGdxGame extends ApplicationAdapter {
 
         for(int i=1; i<rooms.size()-1; i++) {
             //1 spike per room
-            spikes.add(
+            for(int k=0; k<numSpikesPerRoom; k++) {
+
+                //random coordinates in current room;
+                float randomX = (int) (Math.random()*(rooms.get(i).coordX + rooms.get(i).width -rooms.get(i).coordX)) + rooms.get(i).coordX;
+                float randomY = (int) (Math.random()*(rooms.get(i).coordY + rooms.get(i).height -rooms.get(i).coordY)) + rooms.get(i).coordY;
+
+                spikes.add(
                 new Spike(
-                    rooms.get(i).centerCoordX,
-                    rooms.get(i).centerCoordY,
+                    randomX,
+                    randomY,
                     16,
-                    16
+                    16,
+                    levelVariationName,
+                    enemySpeed
                 )
+
+								
             );
+            }
+            
         }
         //---------------------------------GENERATE SPIKES END---------------------------------//
+
+        //---------------------------------GENERATE POTION START---------------------------------//
+
+        for(int i=1; i<rooms.size()-1; i++) {
+            //10% chance to spawn a potion in a room
+            int roomSpawnChance = (int) (Math.random()*(100-1)) + 1;
+
+            if(roomSpawnChance>=90) {
+
+                //random coordinates in current room;
+                float randomX = (int) (Math.random()*(rooms.get(i).coordX + rooms.get(i).width -rooms.get(i).coordX)) + rooms.get(i).coordX;
+                float randomY = (int) (Math.random()*(rooms.get(i).coordY + rooms.get(i).height -rooms.get(i).coordY)) + rooms.get(i).coordY;
+
+                potions.add(
+                    new Potion(
+                        randomX,
+                        randomY,
+                        20,
+                        20
+                    )
+                );
+            }
+        }
+        //---------------------------------GENERATE POTION END---------------------------------//
 
 
 		renderer = new OrthogonalTiledMapRenderer(map);
@@ -881,12 +953,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 
         for(int s=0; s<spikes.size(); s++) {
-            batch.draw(spikes.get(s).currentTexture, spikes.get(s).body.x, spikes.get(s).body.y);
+            batch.draw(spikes.get(s).currentTexture, spikes.get(s).body.x + 16, spikes.get(s).body.y);
         }
 
-        //batch.draw(fog_of_war, player.body.x - fog_of_war.getWidth()/2, player.body.y - fog_of_war.getHeight()/2);
+        for(int s=0; s<potions.size(); s++) {
+            batch.draw(potions.get(s).currentTexture, potions.get(s).body.x + 16, potions.get(s).body.y);
+        }
+
+        batch.draw(fog_of_war, player.body.x - fog_of_war.getWidth()/2+10, player.body.y - fog_of_war.getHeight()/2);
         
-        if(healthBar.getValue()<=0.9f) {
+        if(healthBar.getValue()<=0.0f) {
             dead_counter++;
             isAlive = false;
             float middlePointX = camera.position.x;
@@ -922,7 +998,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		else {
 				animationPortalCounter = 0;
 		}
-
+		monsterVelocityCounter++;
+		if(monsterVelocityCounter % 30 == 0) {
+			for(int s=0; s<spikes.size(); s++) {
+				int randomChance = (int) (Math.random()*(2-0)) + 0;
+				if(randomChance == 0) {
+					spikes.get(s).velocityX = (-spikes.get(s).velocityX);
+				}
+				else {
+					spikes.get(s).velocityY = (-spikes.get(s).velocityY);
+				}
+    	}
+		}
 		
 		for(int i=0; i<finalCollisionLayer.size(); i++) {
 
@@ -959,6 +1046,18 @@ public class MyGdxGame extends ApplicationAdapter {
                     }
                     //down
                     if(sTop > wTop && sBot < wTop) {
+                        velocityY = (-velocityY);
+                    }
+                    if(sTop > 1080) {
+                        velocityY = (-velocityY);
+                    }
+                    if(sRight > 1920) {
+                        velocityX = (-velocityX);
+                    }
+                    if(sLeft < 0) {
+                        velocityX = (-velocityX);
+                    }
+                    if(sBot < 0) {
                         velocityY = (-velocityY);
                     }
 
@@ -1137,10 +1236,21 @@ public class MyGdxGame extends ApplicationAdapter {
         for(int s=0; s<spikes.size(); s++) {
             if(Intersector.intersectRectangles(player.body, spikes.get(s).body, new Rectangle())) {
                 //player hit
-                healthBar.setValue(healthBar.getValue()-0.10f);
+                healthBar.setValue(healthBar.getValue()-enemyDamage);
 
                 //delete the spike
                 spikes.remove(s);
+            }
+        }
+
+        //check if player picked up potion
+        for(int s=0; s<potions.size(); s++) {
+            if(Intersector.intersectRectangles(player.body, potions.get(s).body, new Rectangle())) {
+                //player hit
+                healthBar.setValue(healthBar.getValue() + potions.get(s).healAmount);
+
+                //delete the spike
+                potions.remove(s);
             }
         }
         
