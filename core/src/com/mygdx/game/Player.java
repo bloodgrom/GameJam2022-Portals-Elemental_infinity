@@ -57,6 +57,12 @@ public class Player {
 		    TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
             if(counter >=0 && counter <= 60) {
                player.currentTexture = splitTilesPlayer[1][counter/12];
+
+                if(counter % 36 == 0) {
+                    long id = MyGdxGame.runningSound.play(1.0f);
+                    MyGdxGame.runningSound.setPitch(id, 2);
+                    MyGdxGame.runningSound.setLooping(id, false);
+                }
             }
         }
     }
@@ -67,6 +73,12 @@ public class Player {
 		    TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
             if(counter >=0 && counter <= 60) {
                player.currentTexture = splitTilesPlayer[1][counter/12];
+
+               if(counter % 36 == 0) {
+                long id = MyGdxGame.runningSound.play(1.0f);
+                MyGdxGame.runningSound.setPitch(id, 2);
+                MyGdxGame.runningSound.setLooping(id, false);
+                }
             }
         }
     }
@@ -79,6 +91,12 @@ public class Player {
                 TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
                 if(counter >=0 && counter <= 60) {
                    player.currentTexture = splitTilesPlayer[1][counter/12];
+
+                   if(counter % 36 == 0) {
+                    long id = MyGdxGame.runningSound.play(1.0f);
+                    MyGdxGame.runningSound.setPitch(id, 2);
+                    MyGdxGame.runningSound.setLooping(id, false);
+                    }
                 }
             }
         }
@@ -88,6 +106,12 @@ public class Player {
                 TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
                 if(counter >=0 && counter <= 60) {
                    player.currentTexture = splitTilesPlayer[1][counter/12];
+
+                   if(counter % 36 == 0) {
+                    long id = MyGdxGame.runningSound.play(1.0f);
+                    MyGdxGame.runningSound.setPitch(id, 2);
+                    MyGdxGame.runningSound.setLooping(id, false);
+                    }
                 }
             }
         }
@@ -101,6 +125,12 @@ public class Player {
                 TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
                 if(counter >=0 && counter <= 60) {
                    player.currentTexture = splitTilesPlayer[1][counter/12];
+
+                   if(counter % 36 == 0) {
+                    long id = MyGdxGame.runningSound.play(1.0f);
+                    MyGdxGame.runningSound.setPitch(id, 2);
+                    MyGdxGame.runningSound.setLooping(id, false);
+                    }
                 }
             }
         }
@@ -110,6 +140,11 @@ public class Player {
                 TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
                 if(counter >=0 && counter <= 60) {
                    player.currentTexture = splitTilesPlayer[1][counter/12];
+                   if(counter % 36 == 0) {
+                    long id = MyGdxGame.runningSound.play(1.0f);
+                    MyGdxGame.runningSound.setPitch(id, 2);
+                    MyGdxGame.runningSound.setLooping(id, false);
+                    }
                 }
             }
         }

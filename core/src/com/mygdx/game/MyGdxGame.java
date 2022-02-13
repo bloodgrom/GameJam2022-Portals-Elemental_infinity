@@ -14,6 +14,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -61,6 +62,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	private Texture bucketImage;
 	public int monsterVelocityCounter;
+	private Texture frontPage;
 
 	public static int numTilesHorizontal = 120;
 	public static int numTilesVertical = 68;
@@ -119,6 +121,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	int additionalWallsHorizontalBottomRightY;
 
     boolean isAlive;
+		boolean showMainMenu = true;
 
     private Texture fog_of_war;
 
@@ -158,12 +161,24 @@ public class MyGdxGame extends ApplicationAdapter {
     float enemyDamage;
     float enemySpeed;
 
+		Music song;
+		Sound slurp;
+		Sound uffff;
+		Sound portalEffect;
+		static Sound runningSound;
+		Sound death_sound;
+
 	@Override
 	public void create () {
 
 			monsterVelocityCounter = 0;
 
-      Music song = Gdx.audio.newMusic(Gdx.files.internal("song.wav"));
+      song = Gdx.audio.newMusic(Gdx.files.internal("song.wav"));
+			slurp = Gdx.audio.newSound(Gdx.files.internal("slurp.mp3"));
+			uffff = Gdx.audio.newSound(Gdx.files.internal("uffff.mp3"));
+			portalEffect = Gdx.audio.newSound(Gdx.files.internal("portalEffect.mp3"));
+			runningSound = Gdx.audio.newSound(Gdx.files.internal("steps.mp3"));
+			death_sound = Gdx.audio.newSound(Gdx.files.internal("death_sound.mp3"));
 
 			song.setVolume(0.2f);
 			song.setLooping(true);
@@ -191,6 +206,7 @@ public class MyGdxGame extends ApplicationAdapter {
         fog_of_war = new Texture("fog.v4.png");
         dead_screen = new Texture("dead_logo_new_final.png");
         pressKeyReset = new Texture("press_key_reset.png");
+				frontPage = new Texture("frontPage.png");
 
         if(levelCounter % 3 == 0) {
             numSpikesPerRoom++;
@@ -951,6 +967,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		// font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
 		renderer.setView(camera);
 		renderer.render();
+		
+		
 		batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 
@@ -963,9 +981,15 @@ public class MyGdxGame extends ApplicationAdapter {
         }
 
         batch.draw(fog_of_war, player.body.x - fog_of_war.getWidth()/2+10, player.body.y - fog_of_war.getHeight()/2);
+				
         
         if(healthBar.getValue()<=0.0f) {
             dead_counter++;
+						if(isAlive) {
+							long id = death_sound.play(1.0f);
+							death_sound.setPitch(id, 2);
+							death_sound.setLooping(id, false);
+						}
             isAlive = false;
             float middlePointX = camera.position.x;
             float middlePointY = camera.position.y;
@@ -980,12 +1004,27 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
 
         font.draw(batch, "Health: " + Math.round(healthBar.getValue()*100), camera.position.x - viewPortWidth/2 + 10, camera.position.y + viewPortHeight/2 - 25);
-		
-		batch.end();
 
-        if(Gdx.input.isKeyPressed(Keys.SPACE) && !isAlive) {
-            this.create();
-        }
+        
+
+
+				if(showMainMenu) {
+					float middlePointXFirst = camera.position.x;
+					float middlePointYFirst = camera.position.y;
+					batch.draw(frontPage, middlePointXFirst - viewPortWidth/2, middlePointYFirst - viewPortHeight/2);
+				}
+
+				if(Gdx.input.isKeyPressed(Keys.ENTER) && showMainMenu) {
+					showMainMenu = false;
+					frontPage.dispose();
+				}
+				batch.end();
+				
+				if(Gdx.input.isKeyPressed(Keys.SPACE) && !isAlive) {
+					this.create();
+			}
+
+				
 
     
 		boolean canMoveUp = true;
@@ -1183,6 +1222,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle()) && !portalTouched) {
 				portalTouched = true;
 				//get portal variation
+
+				long id = portalEffect.play(1.0f);
+				portalEffect.setPitch(id, 2);
+				portalEffect.setLooping(id, false);
+				
 				String portalVariation = portal.variation;
 
 				if(portalVariation.equals("nature_ice")) {
@@ -1209,6 +1253,10 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		if(Intersector.intersectRectangles(player.body, portal.rightRect, new Rectangle()) && !portalTouched) {
 				portalTouched = true;
+
+				long id = portalEffect.play(1.0f);
+				portalEffect.setPitch(id, 2);
+				portalEffect.setLooping(id, false);
 				
 				String portalVariation = portal.variation;
 				if(portalVariation.equals("nature_ice")) {
@@ -1239,6 +1287,10 @@ public class MyGdxGame extends ApplicationAdapter {
                 //player hit
                 healthBar.setValue(healthBar.getValue()-enemyDamage);
 
+								long id = uffff.play(1.0f);
+								uffff.setPitch(id, 2);
+								uffff.setLooping(id, false);
+
                 //delete the spike
                 spikes.remove(s);
             }
@@ -1249,6 +1301,10 @@ public class MyGdxGame extends ApplicationAdapter {
             if(Intersector.intersectRectangles(player.body, potions.get(s).body, new Rectangle())) {
                 //player hit
                 healthBar.setValue(healthBar.getValue() + potions.get(s).healAmount);
+
+								long id = slurp.play(1.0f);
+								slurp.setPitch(id, 2);
+								slurp.setLooping(id, false);
 
                 //delete the spike
                 potions.remove(s);
