@@ -1,3 +1,12 @@
+/**This class is the ultimate spaghett.
+ * Pure italian carbonara
+ * @author Anton Minkov
+ * @author Dominik Laszczyk
+ * @since 13.02.22
+ * @version 1.01
+ */
+
+
 package com.mygdx.game;
 
 import java.util.ArrayList;
@@ -1019,7 +1028,7 @@ public class MyGdxGame extends ApplicationAdapter {
 					frontPage.dispose();
 				}
 				batch.end();
-				
+
 				if(Gdx.input.isKeyPressed(Keys.SPACE) && !isAlive) {
 					this.create();
 			}
