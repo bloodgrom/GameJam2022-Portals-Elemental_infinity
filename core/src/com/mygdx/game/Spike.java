@@ -19,11 +19,15 @@ public class Spike {
 
     public TextureRegion currentTexture;
 
-    public Spike(float coordX, float coordY, int width, int height) {
+    public float speed;
+
+    public Spike(float coordX, float coordY, int width, int height, String levelVariationName, float speed) {
         this.coordX = coordX*16;
         this.coordY = coordY*16;
         this.width = width;
         this.height = height;
+
+        this.speed = speed;
 
         this.body = new Rectangle(this.coordX, this.coordY, this.width, this.height);
 
@@ -31,13 +35,11 @@ public class Spike {
         int randomVelocityX = (int) (Math.random()*(3-0)) + 0;
         int randomVelocityY = (int) (Math.random()*(3-0)) + 0;
 
-        float factor = 3.0f;
-
         if(randomVelocityX == 0) {
-            this.velocityX = 1/factor;
+            this.velocityX = speed;
         }
         else if(randomVelocityX == 1) {
-            this.velocityX = (-1)/factor;
+            this.velocityX = -speed;
         }
         else if(randomVelocityX == 2) {
             this.velocityX = 0;
@@ -45,20 +47,34 @@ public class Spike {
         
 
         if(randomVelocityY == 0) {
-            this.velocityY = 1/factor;
+            this.velocityY = speed;
         }
         else if(randomVelocityY == 1) {
-            this.velocityY = (-1)/factor;
+            this.velocityY = -speed;
         }
         else if(randomVelocityX == 2) {
             this.velocityY = 0;
         }
 
         //set texture;
-        Texture playerSprite = new Texture("player_right.png");
-		TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+        String fileName = "";
+        if(levelVariationName.equals("fire")) {
+            int randomMonster = (int) (Math.random()*(4-1)) + 1;
+            fileName = "fire_monster" + String.valueOf(randomMonster) + ".png";
+        }
+        else if(levelVariationName.equals("ice") || levelVariationName.equals("water")) {
+            int randomMonster = (int) (Math.random()*(4-1)) + 1;
+            fileName = "ice_monster" + String.valueOf(randomMonster) + ".png";
+        }
+        else {
+            int randomMonster = (int) (Math.random()*(4-1)) + 1;
+            fileName = "forest_monster" + String.valueOf(randomMonster) + ".png";
+        }
+        
+        Texture monsterSprite = new Texture(fileName);
+        TextureRegion[][] splitMonsterSprite = TextureRegion.split(monsterSprite, 16, 16);
 
-        this.currentTexture = splitTilesPlayer[1][1];
+        this.currentTexture = splitMonsterSprite[0][0];
     }
 
 
