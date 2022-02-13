@@ -133,9 +133,10 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void create () {
 
-		levelVariationName = "";
+		
 
 		if(levelCounter == null) {
+			levelVariationName = "";
 			levelCounter = 1;
 		}
 		else {
@@ -211,6 +212,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 
 		int pickTileSet = (int) (Math.random()*(4));
+
+		//System.out.println(levelVariationName);
 
 
 		if(levelVariationName.equals("fire") || (pickTileSet==0 && levelCounter==1)) {
@@ -857,6 +860,8 @@ public class MyGdxGame extends ApplicationAdapter {
 				portalTouched = true;
 				//get portal variation
 				String portalVariation = portal.variation;
+
+				System.out.println(portalVariation);
 				if(portalVariation.equals("nature_ice")) {
 					levelVariationName = "nature";
 				}
@@ -902,7 +907,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				if(portalVariation.equals("fire_water")) {
 					levelVariationName = "water";
 				}
-				System.out.println(levelVariationName);
+				//System.out.println(levelVariationName);
 
 				this.create();
 		}
