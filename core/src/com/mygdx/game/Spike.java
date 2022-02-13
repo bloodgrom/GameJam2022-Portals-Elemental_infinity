@@ -28,16 +28,19 @@ public class Spike {
         this.body = new Rectangle(this.coordX, this.coordY, this.width, this.height);
 
         //velocity
-        int randomVelocityX = (int) (Math.random()*(2-0)) + 0;
-        int randomVelocityY = (int) (Math.random()*(2-0)) + 0;
+        int randomVelocityX = (int) (Math.random()*(3-0)) + 0;
+        int randomVelocityY = (int) (Math.random()*(3-0)) + 0;
 
-        float factor = 10.0f;
+        float factor = 3.0f;
 
         if(randomVelocityX == 0) {
             this.velocityX = 1/factor;
         }
         else if(randomVelocityX == 1) {
             this.velocityX = (-1)/factor;
+        }
+        else if(randomVelocityX == 2) {
+            this.velocityX = 0;
         }
         
 
@@ -46,6 +49,9 @@ public class Spike {
         }
         else if(randomVelocityY == 1) {
             this.velocityY = (-1)/factor;
+        }
+        else if(randomVelocityX == 2) {
+            this.velocityY = 0;
         }
 
         //set texture;

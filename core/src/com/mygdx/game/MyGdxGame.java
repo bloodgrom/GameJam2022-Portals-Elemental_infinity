@@ -117,7 +117,12 @@ public class MyGdxGame extends ApplicationAdapter {
 	int additionalWallsHorizontalBottomRightX;
 	int additionalWallsHorizontalBottomRightY;
 
+    boolean isAlive;
+
     private Texture fog_of_war;
+
+    int dead_counter;
+    private Texture dead_screen;
 
 	TextureRegion[][] splitTiles;
 
@@ -144,10 +149,28 @@ public class MyGdxGame extends ApplicationAdapter {
 
     ArrayList<Spike> spikes;
 
+    Texture pressKeyReset;
+
 	@Override
 	public void create () {
 
+        
+
+        if(levelCounter == null || !isAlive) {
+			levelVariationName = "";
+			levelCounter = 1;
+		}
+		else {
+			levelCounter ++;
+		}
+
+        isAlive = true;
+
+        dead_counter = 0;
         fog_of_war = new Texture("fog.v4.png");
+        dead_screen = new Texture("dead_logo_new_final.png");
+        pressKeyReset = new Texture("press_key_reset.png");
+        
 
 		//------------------------------------HEALTH BAR START------------------------------------//
 
@@ -199,13 +222,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		animationRunUpCounter = 0;
 		animationRunDownCounter = 0;
 
-		if(levelCounter == null) {
-			levelVariationName = "";
-			levelCounter = 1;
-		}
-		else {
-			levelCounter ++;
-		}
+		
 
 		portalTouched = false;
 
@@ -775,7 +792,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
         //---------------------------------GENERATE SPIKES START---------------------------------//
 
-        for(int i=0; i<rooms.size(); i++) {
+        for(int i=1; i<rooms.size()-1; i++) {
             //1 spike per room
             spikes.add(
                 new Spike(
@@ -786,8 +803,6 @@ public class MyGdxGame extends ApplicationAdapter {
                 )
             );
         }
-
-
         //---------------------------------GENERATE SPIKES END---------------------------------//
 
 
@@ -870,13 +885,27 @@ public class MyGdxGame extends ApplicationAdapter {
         }
 
         //batch.draw(fog_of_war, player.body.x - fog_of_war.getWidth()/2, player.body.y - fog_of_war.getHeight()/2);
-
         
+        if(healthBar.getValue()<=0.9f) {
+            dead_counter++;
+            isAlive = false;
+            float middlePointX = camera.position.x;
+            float middlePointY = camera.position.y;
+            batch.draw(dead_screen, middlePointX - viewPortWidth/2, middlePointY - viewPortHeight/2);
         
+            if(dead_counter >= 120) {
+                batch.draw(pressKeyReset, middlePointX - viewPortWidth/2, middlePointY - viewPortHeight/2);
+                levelCounter = 1;
+            }
+        }
 
 		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
 		
 		batch.end();
+
+        if(Gdx.input.isKeyPressed(Keys.SPACE) && !isAlive) {
+            this.create();
+        }
 
     
 		boolean canMoveUp = true;
@@ -898,39 +927,45 @@ public class MyGdxGame extends ApplicationAdapter {
 		for(int i=0; i<finalCollisionLayer.size(); i++) {
 
             for(int s=0; s<spikes.size(); s++) {
-                //update spike velocity;
-                float sLeft = spikes.get(s).body.x;
-                float sRight = spikes.get(s).body.x + spikes.get(s).body.width;
-                float sTop = spikes.get(s).body.y + spikes.get(s).body.height;
-                float sBot = spikes.get(s).body.y;
 
-                float wLeft = finalCollisionLayer.get(i).x;
-                float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
-                float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
-                float wBot = finalCollisionLayer.get(i).y;
+                if(Intersector.intersectRectangles(spikes.get(s).body, finalCollisionLayer.get(i), new Rectangle())) {
 
-                float velocityX = spikes.get(s).velocityX;
-                float velocityY = spikes.get(s).velocityX;
                 
-                //left
-                if(sLeft < wRight && sRight > wRight) {
-                    velocityX = (-velocityX);
-                }
-                //right
-                if(sLeft < wLeft && sRight > wLeft) {
-                    velocityX = (-velocityX);
-                }
-                //up
-                if(sTop > wBot && sBot < wBot) {
-                    velocityY = (-velocityY);
-                }
-                //down
-                if(sTop > wTop && sBot < wTop) {
-                    velocityY = (-velocityY);
-                }
+                    //update spike velocity;
+                    float sLeft = spikes.get(s).body.x;
+                    float sRight = spikes.get(s).body.x + spikes.get(s).body.width;
+                    float sTop = spikes.get(s).body.y + spikes.get(s).body.height;
+                    float sBot = spikes.get(s).body.y;
 
-                spikes.get(s).velocityX = velocityX;
-                spikes.get(s).velocityY = velocityY;
+                    float wLeft = finalCollisionLayer.get(i).x;
+                    float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
+                    float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
+                    float wBot = finalCollisionLayer.get(i).y;
+
+                    float velocityX = spikes.get(s).velocityX;
+                    float velocityY = spikes.get(s).velocityX;
+                    
+                    //left
+                    if(sLeft < wRight && sRight > wRight) {
+                        velocityX = (-velocityX);
+                    }
+                    //right
+                    if(sLeft < wLeft && sRight > wLeft) {
+                        velocityX = (-velocityX);
+                    }
+                    //up
+                    if(sTop > wBot && sBot < wBot) {
+                        velocityY = (-velocityY);
+                    }
+                    //down
+                    if(sTop > wTop && sBot < wTop) {
+                        velocityY = (-velocityY);
+                    }
+
+                    spikes.get(s).velocityX = velocityX;
+                    spikes.get(s).velocityY = velocityY;
+
+                }
                 
             }
 
@@ -951,22 +986,18 @@ public class MyGdxGame extends ApplicationAdapter {
                 //left
                 if(pLeft < wRight && pRight > wRight) {
                     canMoveLeft = false;
-                        
                 }
                 //right
                 if(pLeft < wLeft && pRight > wLeft) {
                     canMoveRight = false;
-                        
                 }
                 //up
                 if(pTop > wBot && pBot < wBot) {
                     canMoveUp = false;
-                        
                 }
                 //down
                 if(pTop > wTop && pBot < wTop) {
-                    canMoveDown = false;
-                        
+                    canMoveDown = false; 
                 }
 
                 if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
@@ -1102,15 +1133,22 @@ public class MyGdxGame extends ApplicationAdapter {
 				this.create();
 		}
 
-        healthBar.setValue(healthBar.getValue()-0.01f);
+        //check if player hit by spike
+        for(int s=0; s<spikes.size(); s++) {
+            if(Intersector.intersectRectangles(player.body, spikes.get(s).body, new Rectangle())) {
+                //player hit
+                healthBar.setValue(healthBar.getValue()-0.10f);
 
+                //delete the spike
+                spikes.remove(s);
+            }
+        }
+        
 		stage.draw();
 		stage.act();
 
+        
+
 	}
-
-	
-
-	
 }
 
