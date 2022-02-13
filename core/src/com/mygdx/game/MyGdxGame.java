@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -31,6 +32,7 @@ import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.bullet.linearmath.int4;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MyGdxGame extends ApplicationAdapter {
@@ -114,8 +116,6 @@ public class MyGdxGame extends ApplicationAdapter {
 	int additionalWallsVerticalX;
 	int additionalWallsVerticalY;
 
-	ArrayList<Rectangle> collisionLayer;
-
 	//0 is wall, 1 is floor
 	int[][] collisionLayerBoolean;
 
@@ -123,11 +123,24 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	int tileSize;
 
-	
+	int levelVariation;
+	String levelVariationName;
+
+	Integer levelCounter;
+
 
 
 	@Override
 	public void create () {
+
+		levelVariationName = "";
+
+		if(levelCounter == null) {
+			levelCounter = 1;
+		}
+		else {
+			levelCounter ++;
+		}
 
 		portalTouched = false;
 
@@ -140,17 +153,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		counter = 0;
-        animationPortalCounter = 0;
-        animationUnstuckCounter= 0;
-
-        portal_variations = new ArrayList<Texture>();
-        portal_variations.add(new Texture("green_ice_1.png"));
-        portal_variations.add(new Texture("green_ice_2.png"));
-        portal_variations.add(new Texture("green_ice_3.png"));
-        portal_variations.add(new Texture("green_ice_4.png"));
-        portal_variations.add(new Texture("green_ice_5.png"));
-        portal_variations.add(new Texture("green_ice_6.png"));
-        portal_variations.add(new Texture("green_ice_7.png"));
+		animationPortalCounter = 0;
+		animationUnstuckCounter= 0;
 
 		controller = new KeyboardController();
 		Gdx.input.setInputProcessor(controller);
@@ -202,15 +206,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		floorTileX = 8;
 		floorTileY = 0;
 
-        collisionLayer = new ArrayList<>();
+				
         finalCollisionLayer = new ArrayList<>();
 
 
 		int pickTileSet = (int) (Math.random()*(4));
 
-		if(pickTileSet == 0) {
-			// tiles = new Texture("lava.png");
-			//SCALE IMAGES/SPRITES
+
+		if(levelVariationName.equals("fire") || (pickTileSet==0 && levelCounter==1)) {
 			Pixmap pixmap200 = new Pixmap(Gdx.files.internal("lava.png"));
 			Pixmap pixmap100 = new Pixmap(16, 16, pixmap200.getFormat());
 			pixmap100.drawPixmap(pixmap200,
@@ -225,7 +228,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			tileCoordY = 0;
 		}
 
-		else if(pickTileSet == 1) {
+		else if(levelVariationName.equals("ice") || (pickTileSet==1 && levelCounter==1)) {
 			tiles = new Texture("IceSet.png");
 			splitTiles = TextureRegion.split(tiles, 16, 16);
 
@@ -234,16 +237,15 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		}
 
-		else if(pickTileSet == 2) {
+		else if(levelVariationName.equals("water") || (pickTileSet==2 && levelCounter==1)) {
 			tiles = new Texture("Water.png");
 			splitTiles = TextureRegion.split(tiles, 16, 16);
 
 			tileCoordX = 0;
 			tileCoordY = 2;
-
 		}
 
-		else {
+		else if(levelVariationName.equals("nature") || (pickTileSet==3 && levelCounter==1)){
 			tiles = new Texture("new_forest.png");
 			splitTiles = TextureRegion.split(tiles, 16, 16);
 
@@ -515,108 +517,90 @@ public class MyGdxGame extends ApplicationAdapter {
 			
 					//up-1
 					if(x1 == chosenConnectionX && chosenConnectionY > y1) {
-                        int iterator = 1;
 						for(int k = y1; k < chosenConnectionY; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
                             collisionLayerBoolean[x1][k] = 1;
-                            iterator++;
+							layer2.setCell(x1+1, k, cell);
+							collisionLayerBoolean[x1+1][k] = 1;
 						}
-                        collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize, tileSize*iterator));
-                        
 					}
 					//down-1
 					else if(x1 == chosenConnectionX && chosenConnectionY < y1) {
-                        int iterator = 1;
 						for(int k = chosenConnectionY; k < y1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x1, k, cell);
                             collisionLayerBoolean[x1][k] = 1;
-                            iterator++;
+							layer2.setCell(x1+1, k, cell);
+                            collisionLayerBoolean[x1+1][k] = 1;
 						}
-                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
-                        
                     }
 					//right-1
 					else if(y1 == chosenConnectionY && chosenConnectionX > x1) {
-                        int iterator = 1;
 						for(int k = x1; k < chosenConnectionX+1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
                             collisionLayerBoolean[k][y1] = 1;
-                            iterator++;
+							layer2.setCell(k, y1+1, cell);
+                            collisionLayerBoolean[k][y1+1] = 1;
 						}
-                        collisionLayer.add(new Rectangle(x1*tileSize, y1*tileSize, tileSize*iterator, tileSize));
-                        
                     }
 					//left-1
 					else if(y1 == chosenConnectionY && chosenConnectionX < x1) {
-                        int iterator = 1;
 						for(int k = chosenConnectionX; k < x1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y1, cell);
                             collisionLayerBoolean[k][y1] = 1;
-                            iterator++;
+							layer2.setCell(k, y1+1, cell);
+                            collisionLayerBoolean[k][y1+1] = 1;
 						}
-                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
                     }
-
 
 					//up-2
 					if(x2 == chosenConnectionX && chosenConnectionY > y2) {
-                        int iterator = 1;
 						for(int k = y2; k < chosenConnectionY; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
                             collisionLayerBoolean[x2][k] = 1;
-                            iterator++;
+							layer2.setCell(x2+1, k, cell);
+                            collisionLayerBoolean[x2+1][k] = 1;
 						}
-                        collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize, tileSize*iterator));
-                        
                     }
 					//down-2
 					else if(x2 == chosenConnectionX && chosenConnectionY < y2) {
-                        int iterator = 1;
 						for(int k = chosenConnectionY; k < y2; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(x2, k, cell);
                             collisionLayerBoolean[x2][k] = 1;
-                            iterator++;
+							layer2.setCell(x2+1, k, cell);
+                            collisionLayerBoolean[x2+1][k] = 1;
 						}
-                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize, tileSize*iterator));
-                        
                     }
 					//right-2
 					else if(y2 == chosenConnectionY && chosenConnectionX > x2) {
-                        int iterator = 1;
 						for(int k = x2; k < chosenConnectionX+1; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
 							layer2.setCell(k, y2, cell);
                             collisionLayerBoolean[k][y2] = 1;
-                            iterator++;
+							layer2.setCell(k, y2+1, cell);
+                            collisionLayerBoolean[k][y2+1] = 1;
 						}
-                        collisionLayer.add(new Rectangle(x2*tileSize, y2*tileSize, tileSize*iterator, tileSize));
-                        
                     }
 					//left-2
 					else if(y2 == chosenConnectionY && chosenConnectionX < x2) {
-                        int iterator = 1;
 						for(int k = chosenConnectionX; k < x2; k++) {
 							Cell cell = new Cell();
 							cell.setTile(new StaticTiledMapTile(splitTilesCorridor[corridorTileX][corridorTileY]));
-							layer2.setCell(k, y2, cell);
-                            collisionLayerBoolean[k][y2] = 1;
-                            iterator++;
+							layer2.setCell(k, y2+1, cell);
+                            collisionLayerBoolean[k][y2+1] = 1;
 						}
-                        collisionLayer.add(new Rectangle(chosenConnectionX*tileSize, chosenConnectionY*tileSize, tileSize*iterator, tileSize));
-                        
                     }	
 				}
 
@@ -633,7 +617,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		int firstRoomWidth = customRooms.get(0).width;
 		int firstRoomHeight = customRooms.get(0).height;
 
-        collisionLayer.add(new Rectangle(firstRoomCoordX*tileSize-16, firstRoomCoordY*tileSize, firstRoomWidth*tileSize, firstRoomHeight*tileSize));
+        
         
 
 		for(int y = firstRoomCoordY; y < firstRoomCoordY + firstRoomHeight; y++) {
@@ -642,9 +626,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				cellFirst.setTile(new StaticTiledMapTile(splitTilesFloor[floorTileX][floorTileY]));
 				layer2.setCell(x, y, cellFirst);
                 collisionLayerBoolean[x][y] = 1;
-
-                System.out.println(x);
-                System.out.println(y);
 			}
 		}
 
@@ -664,7 +645,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				}
 			}
 
-            collisionLayer.add(new Rectangle(coordX*tileSize, coordY*tileSize, width*tileSize, height*tileSize));
+          
         }
 
 		int endRoomCoordX = customRooms.get(1).coordX;
@@ -692,8 +673,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 54, 54);
 
 		player = new Player(
-			(customRooms.get(0).centerCoordX), 
-			(customRooms.get(0).centerCoordY),
+			(customRooms.get(1).centerCoordX), 
+			(customRooms.get(1).centerCoordY) + 2,
 			14,
 			14,
 			100,
@@ -725,13 +706,6 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
 
-        //print boolean array
-        for(int i=30; i>0; i--) {
-            for(int j=0 ; j<30; j++) {
-                System.out.print(collisionLayerBoolean[i][j]);
-            }
-            System.out.println("");
-        }
 
 		renderer = new OrthogonalTiledMapRenderer(map);
 	}
@@ -785,7 +759,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		renderer.render();
 		batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
+
+		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
+		
 		batch.end();
+
 
 		boolean canMoveUp = true;
 		boolean canMoveDown = true;
@@ -810,7 +788,7 @@ public class MyGdxGame extends ApplicationAdapter {
 						if(animationPortalCounter < 6*9) {
 								animationPortalCounter++;
 								if(animationPortalCounter % 9 == 0 ) {
-										portal.currentTexture = portal_variations.get(animationPortalCounter/9);
+										portal.currentTexture = portal.portal_animations.get(animationPortalCounter/9);
 								}
 						}
 						else {
@@ -877,15 +855,59 @@ public class MyGdxGame extends ApplicationAdapter {
 		//check for collision with portal
 		if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle()) && !portalTouched) {
 				portalTouched = true;
-				System.out.println("LEFT PORTAL");
+				//get portal variation
+				String portalVariation = portal.variation;
+				if(portalVariation.equals("nature_ice")) {
+					levelVariationName = "nature";
+				}
+				if(portalVariation.equals("nature_fire")) {
+					levelVariationName = "nature";
+				}
+				if(portalVariation.equals("nature_water")) {
+					levelVariationName = "nature";
+				}
+				if(portalVariation.equals("ice_fire")) {
+					levelVariationName = "ice";
+				}
+				if(portalVariation.equals("ice_water")) {
+					levelVariationName = "ice";
+				}
+				if(portalVariation.equals("fire_water")) {
+					levelVariationName = "fire";
+				}
+				System.out.println(levelVariationName);
+
 				this.create();
 		}
 
 		if(Intersector.intersectRectangles(player.body, portal.rightRect, new Rectangle()) && !portalTouched) {
 				portalTouched = true;
-				System.out.println("RIGHT PORTAL");
+				
+				String portalVariation = portal.variation;
+				if(portalVariation.equals("nature_ice")) {
+					levelVariationName = "ice";
+				}
+				if(portalVariation.equals("nature_fire")) {
+					levelVariationName = "fire";
+				}
+				if(portalVariation.equals("nature_water")) {
+					levelVariationName = "water";
+				}
+				if(portalVariation.equals("ice_fire")) {
+					levelVariationName = "fire";
+				}
+				if(portalVariation.equals("ice_water")) {
+					levelVariationName = "water";
+				}
+				if(portalVariation.equals("fire_water")) {
+					levelVariationName = "water";
+				}
+				System.out.println(levelVariationName);
+
 				this.create();
 		}
+
+	
 	}
 
 	

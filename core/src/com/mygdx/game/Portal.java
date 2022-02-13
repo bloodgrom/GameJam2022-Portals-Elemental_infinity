@@ -30,6 +30,8 @@ public class Portal {
   public Rectangle leftRect;
   public Rectangle rightRect;
 
+  ArrayList<Texture> portal_animations;
+
 
   public Portal(int coordX, int coordY, int width, int height) {
     this.coordX = coordX*16;
@@ -51,7 +53,7 @@ public class Portal {
     this.leftRect = new Rectangle(this.leftX + 4, this.leftY + 2, this.leftWidth - 8, this.leftHeight - 4);
     this.rightRect = new Rectangle(this.rightX + 4, this.rightY + 2, this.rightWidth - 8, this.rightHeight - 4);
 
-    int pickVariation = (int) (Math.random()*(4 - 0 + 1 + 0));
+    int pickVariation = (int) (Math.random()*(5 - 0 + 1 + 0));
     ArrayList<String> variations = new ArrayList<String>();
 
     variations.add("nature_ice");
@@ -63,7 +65,40 @@ public class Portal {
 
     this.variation = variations.get(pickVariation);
 
-    this.currentTexture = new Texture("green_ice_0.png");
-}
+    
+    this.portal_animations = new ArrayList<Texture>();
 
+    if(this.variation.equals("nature_ice")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("green_ice_" + String.valueOf(i) + ".png"));
+      }
+    }
+    else if(this.variation.equals("nature_fire")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("green_red_" + String.valueOf(i) + ".png"));
+      }
+    }
+    else if(this.variation.equals("nature_water")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("green_water_" + String.valueOf(i) + ".png"));
+      }
+    }
+    else if(this.variation.equals("ice_fire")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("ice_red_" + String.valueOf(i) + ".png"));
+      }
+    }
+    else if(this.variation.equals("ice_water")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("ice_water_" + String.valueOf(i) + ".png"));
+      }
+    }
+    else if(this.variation.equals("fire_water")) {
+      for(int i = 1; i < 8; i++) {
+        portal_animations.add(new Texture("red_water_" + String.valueOf(i) + ".png"));
+      }
+    }
+
+    this.currentTexture = portal_animations.get(0);
+  }
 }
