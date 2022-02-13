@@ -16,12 +16,14 @@ public class Player {
     public int width;
     public int height;
 
-    public int speed = 1;
+    public int speed = 2;
 
     public int health;
     public int defence;
 
     public Rectangle body;
+    public String playerOrientation;
+    public String runningOrientation;
 
     public TextureRegion currentTexture;
 
@@ -45,6 +47,72 @@ public class Player {
         this.defence = defence;
 
         this.currentTexture = currentTexture;
+        this.playerOrientation = "right";
+        this.runningOrientation = "right";
+    }
+
+    public void playerRunLeft(int counter, Player player) {
+        if(counter % 12 == 0) {
+            Texture playerSprite = new Texture("player_left.png");
+		    TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+            if(counter >=0 && counter <= 60) {
+               player.currentTexture = splitTilesPlayer[1][counter/12];
+            }
+        }
+    }
+
+    public void playerRunRight(int counter, Player player) {
+        if(counter % 12 == 0) {
+            Texture playerSprite = new Texture("player_right.png");
+		    TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+            if(counter >=0 && counter <= 60) {
+               player.currentTexture = splitTilesPlayer[1][counter/12];
+            }
+        }
+    }
+
+    public void playerRunUp(int counter, Player player, String runningOrientation) {
+
+        if(runningOrientation.equals("right")){
+            if(counter % 12 == 0) {
+                Texture playerSprite = new Texture("player_right.png");
+                TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+                if(counter >=0 && counter <= 60) {
+                   player.currentTexture = splitTilesPlayer[1][counter/12];
+                }
+            }
+        }
+        else if(runningOrientation.equals("left")) {
+            if(counter % 12 == 0) {
+                Texture playerSprite = new Texture("player_left.png");
+                TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+                if(counter >=0 && counter <= 60) {
+                   player.currentTexture = splitTilesPlayer[1][counter/12];
+                }
+            }
+        }
+    }
+
+    public void playerRunDown(int counter, Player player, String runningOrientation) {
+
+        if(runningOrientation.equals("right")){
+            if(counter % 12 == 0) {
+                Texture playerSprite = new Texture("player_right.png");
+                TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+                if(counter >=0 && counter <= 60) {
+                   player.currentTexture = splitTilesPlayer[1][counter/12];
+                }
+            }
+        }
+        else if(runningOrientation.equals("left")) {
+            if(counter % 12 == 0) {
+                Texture playerSprite = new Texture("player_left.png");
+                TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
+                if(counter >=0 && counter <= 60) {
+                   player.currentTexture = splitTilesPlayer[1][counter/12];
+                }
+            }
+        }
     }
 
 }

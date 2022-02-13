@@ -13,9 +13,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -33,6 +35,9 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.bullet.linearmath.int4;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar.ProgressBarStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MyGdxGame extends ApplicationAdapter {
@@ -72,6 +77,10 @@ public class MyGdxGame extends ApplicationAdapter {
 	int counter;
     int animationPortalCounter;
 	int animationUnstuckCounter;
+	int animationRunLeftCounter;
+	int animationRunRightCounter;
+	int animationRunUpCounter;
+	int animationRunDownCounter;
 
     float previousCoordX;
     float previousCoordY;
@@ -128,12 +137,56 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	Integer levelCounter;
 
-
+	ProgressBar healthBar;
+	Stage stage;
 
 	@Override
 	public void create () {
 
+		//------------------------------------HEALTH BAR START------------------------------------//
+
+		Pixmap pixmap = new Pixmap(100, 20, Format.RGBA8888);
+		pixmap.setColor(Color.RED);
+		pixmap.fill();
+
+		TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+		pixmap.dispose();
+
+		ProgressBarStyle progressBarStyle = new ProgressBarStyle();
+		progressBarStyle.background = drawable;
+
+		pixmap = new Pixmap(0, 20, Format.RGBA8888);
+		pixmap.setColor(Color.GREEN);
+		pixmap.fill();
+		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+		pixmap.dispose();
 		
+		progressBarStyle.knob = drawable;
+
+		pixmap = new Pixmap(100, 20, Format.RGBA8888);
+		pixmap.setColor(Color.GREEN);
+		pixmap.fill();
+		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+		pixmap.dispose();
+		
+		progressBarStyle.knobBefore = drawable;
+	
+
+		stage = new Stage();
+ 
+		ProgressBar healthBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
+		healthBar.setValue(1.0f);
+		healthBar.setAnimateDuration(0.25f);
+		healthBar.setBounds(10, 1080-20, 100, 20);
+		
+		stage.addActor(healthBar);
+
+		//------------------------------------HEALTH BAR END------------------------------------//
+		
+		animationRunLeftCounter = 0;
+		animationRunRightCounter = 0;
+		animationRunUpCounter = 0;
+		animationRunDownCounter = 0;
 
 		if(levelCounter == null) {
 			levelVariationName = "";
@@ -676,10 +729,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		TiledMapTileLayer layer3 = new TiledMapTileLayer(numTilesHorizontal, numTilesVertical, 54, 54);
 
 		player = new Player(
-			(customRooms.get(1).centerCoordX), 
-			(customRooms.get(1).centerCoordY) + 2,
-			14,
-			14,
+			(customRooms.get(0).centerCoordX), 
+			(customRooms.get(0).centerCoordY),
+			10,
+			10,
 			100,
 			20,
 			splitTilesPlayer[0][0]
@@ -716,6 +769,27 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () {
 		ScreenUtils.clear(100f / 255f, 100f / 255f, 250f / 255f, 1f);
+
+		Texture playerSpriteRight = new Texture("player_right.png");
+    TextureRegion[][] splitTilesPlayerRight = TextureRegion.split(playerSpriteRight, 48, 48);
+
+		Texture playerSpriteLeft = new Texture("player_left.png");
+    TextureRegion[][] splitTilesPlayerLeft = TextureRegion.split(playerSpriteLeft, 48, 48);
+
+		if(animationRunLeftCounter < 0 || animationRunLeftCounter > 60) {
+			animationRunLeftCounter = 0;
+		}
+		if(animationRunRightCounter < 0 || animationRunRightCounter > 60) {
+			animationRunRightCounter = 0;
+		}
+
+		if(animationRunUpCounter < 0 || animationRunUpCounter > 60) {
+			animationRunUpCounter = 0;
+		}
+
+		if(animationRunDownCounter < 0 || animationRunDownCounter > 60) {
+			animationRunDownCounter = 0;
+		}
 
 		if(counter < 1) {
 			if(Room.startRoomLocationIndex == 0) {
@@ -763,6 +837,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 
+		
+
 		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
 		
 		batch.end();
@@ -772,6 +848,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		boolean canMoveDown = true;
 		boolean canMoveLeft = true;
 		boolean canMoveRight = true;
+
+		if(animationPortalCounter < 6*9) {
+			animationPortalCounter++;
+			if(animationPortalCounter % 9 == 0 ) {
+					portal.currentTexture = portal.portal_animations.get(animationPortalCounter/9);
+			}
+		}
+		else {
+				animationPortalCounter = 0;
+		}
 
 		
 		for(int i=0; i<finalCollisionLayer.size(); i++) {
@@ -786,17 +872,6 @@ public class MyGdxGame extends ApplicationAdapter {
 						float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
 						float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
 						float wBot = finalCollisionLayer.get(i).y;
-
-
-						if(animationPortalCounter < 6*9) {
-								animationPortalCounter++;
-								if(animationPortalCounter % 9 == 0 ) {
-										portal.currentTexture = portal.portal_animations.get(animationPortalCounter/9);
-								}
-						}
-						else {
-								animationPortalCounter = 0;
-						}
 						
 						//left
 						if(pLeft < wRight && pRight > wRight) {
@@ -829,31 +904,66 @@ public class MyGdxGame extends ApplicationAdapter {
 										player.body.y = previousCoordY;
 								}
 						}
-
-						
 				}
-				
 		}
 		
 
 		if(controller.left && canMoveLeft){	
 			player.body.x -= player.speed;
-			playerSprite = new Texture("player_left.png");  
-			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
-			player.currentTexture = splitTilesPlayer[0][0];
+			player.playerOrientation  = "left";
+			player.runningOrientation = "left";  
+			player.playerRunLeft(animationRunLeftCounter, player);
+			animationRunLeftCounter++;
 		} 
+
 		if(controller.right && canMoveRight){
 			player.body.x += player.speed;
-			playerSprite = new Texture("player_right.png");	
-			TextureRegion[][] splitTilesPlayer = TextureRegion.split(playerSprite, 48, 48);
-			player.currentTexture = splitTilesPlayer[0][0];
+			player.playerOrientation  = "right";
+			player.runningOrientation = "right";
+			player.playerRunRight(animationRunRightCounter, player);
+			animationRunRightCounter++;
 		} 
+
 		if(controller.down && canMoveDown){
 			player.body.y -= player.speed;
+			player.playerOrientation  = "down";
+			player.playerRunDown(animationRunDownCounter, player, player.runningOrientation);
+			animationRunDownCounter++;
 		} 
+
 		if(controller.up && canMoveUp){
 			player.body.y += player.speed;
+			player.playerOrientation  = "up";
+			player.playerRunUp(animationRunUpCounter, player, player.runningOrientation);
+			animationRunUpCounter++;
 		} 
+
+		if(!controller.left || !canMoveLeft) {
+			animationRunLeftCounter--;
+		}
+
+		if(!controller.right || !canMoveRight) {
+			animationRunRightCounter--;
+		}
+
+		if(!controller.down || !canMoveDown) {
+			animationRunDownCounter--;
+		}
+
+		if(!controller.up || !canMoveUp) {
+			animationRunUpCounter--;
+		}
+
+		if((!controller.left && !controller.right && !controller.down && !controller.up) ||
+			(!canMoveLeft || !canMoveRight || !canMoveDown || !canMoveUp)) {
+			
+			if(player.runningOrientation.equals("left")) {
+				player.currentTexture = splitTilesPlayerLeft[0][0];
+			}
+			else if(player.runningOrientation.equals("right")) {
+				player.currentTexture = splitTilesPlayerRight[0][0];
+			}
+		}
 
 		//check for collision with portal
 		if(Intersector.intersectRectangles(player.body, portal.leftRect, new Rectangle()) && !portalTouched) {
@@ -912,8 +1022,11 @@ public class MyGdxGame extends ApplicationAdapter {
 				this.create();
 		}
 
-	
+		stage.draw();
+		stage.act();
 	}
+
+	
 
 	
 }
