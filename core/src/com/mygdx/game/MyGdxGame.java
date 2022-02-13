@@ -117,6 +117,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	int additionalWallsHorizontalBottomRightX;
 	int additionalWallsHorizontalBottomRightY;
 
+    private Texture fog_of_war;
+
 	TextureRegion[][] splitTiles;
 
 	boolean portalTouched;
@@ -140,8 +142,12 @@ public class MyGdxGame extends ApplicationAdapter {
 	ProgressBar healthBar;
 	Stage stage;
 
+    ArrayList<Spike> spikes;
+
 	@Override
 	public void create () {
+
+        fog_of_war = new Texture("fog.v4.png");
 
 		//------------------------------------HEALTH BAR START------------------------------------//
 
@@ -150,7 +156,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		pixmap.fill();
 
 		TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
-		pixmap.dispose();
+		drawable.setMinHeight(50.0f);
+        pixmap.dispose();
 
 		ProgressBarStyle progressBarStyle = new ProgressBarStyle();
 		progressBarStyle.background = drawable;
@@ -159,6 +166,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		pixmap.setColor(Color.GREEN);
 		pixmap.fill();
 		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+        
 		pixmap.dispose();
 		
 		progressBarStyle.knob = drawable;
@@ -167,6 +175,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		pixmap.setColor(Color.GREEN);
 		pixmap.fill();
 		drawable = new TextureRegionDrawable(new TextureRegion(new Texture(pixmap)));
+        drawable.setMinHeight(50.0f);
 		pixmap.dispose();
 		
 		progressBarStyle.knobBefore = drawable;
@@ -174,15 +183,17 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		stage = new Stage();
  
-		ProgressBar healthBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
+		healthBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
 		healthBar.setValue(1.0f);
 		healthBar.setAnimateDuration(0.25f);
-		healthBar.setBounds(10, 1080-20, 100, 20);
+		healthBar.setBounds(30, 1080-140, 500, 200);
 		
 		stage.addActor(healthBar);
 
 		//------------------------------------HEALTH BAR END------------------------------------//
 		
+        spikes = new ArrayList<>();
+
 		animationRunLeftCounter = 0;
 		animationRunRightCounter = 0;
 		animationRunUpCounter = 0;
@@ -762,6 +773,23 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
 
+        //---------------------------------GENERATE SPIKES START---------------------------------//
+
+        for(int i=0; i<rooms.size(); i++) {
+            //1 spike per room
+            spikes.add(
+                new Spike(
+                    rooms.get(i).centerCoordX,
+                    rooms.get(i).centerCoordY,
+                    16,
+                    16
+                )
+            );
+        }
+
+
+        //---------------------------------GENERATE SPIKES END---------------------------------//
+
 
 		renderer = new OrthogonalTiledMapRenderer(map);
 	}
@@ -837,13 +865,20 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.draw(portal.currentTexture, portal.coordX, portal.coordY);
 		batch.draw(player.currentTexture, player.body.x, player.body.y);
 
-		
+        for(int s=0; s<spikes.size(); s++) {
+            batch.draw(spikes.get(s).currentTexture, spikes.get(s).body.x, spikes.get(s).body.y);
+        }
+
+        //batch.draw(fog_of_war, player.body.x - fog_of_war.getWidth()/2, player.body.y - fog_of_war.getHeight()/2);
+
+        
+        
 
 		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
 		
 		batch.end();
 
-
+    
 		boolean canMoveUp = true;
 		boolean canMoveDown = true;
 		boolean canMoveLeft = true;
@@ -861,51 +896,96 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		
 		for(int i=0; i<finalCollisionLayer.size(); i++) {
-				if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
 
-						float pLeft = player.body.x;
-						float pRight = player.body.x + player.body.width;
-						float pTop = player.body.y + player.body.height;
-						float pBot = player.body.y;
+            for(int s=0; s<spikes.size(); s++) {
+                //update spike velocity;
+                float sLeft = spikes.get(s).body.x;
+                float sRight = spikes.get(s).body.x + spikes.get(s).body.width;
+                float sTop = spikes.get(s).body.y + spikes.get(s).body.height;
+                float sBot = spikes.get(s).body.y;
 
-						float wLeft = finalCollisionLayer.get(i).x;
-						float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
-						float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
-						float wBot = finalCollisionLayer.get(i).y;
-						
-						//left
-						if(pLeft < wRight && pRight > wRight) {
-								canMoveLeft = false;
-								
-						}
-						//right
-						if(pLeft < wLeft && pRight > wLeft) {
-								canMoveRight = false;
-								
-						}
-						//up
-						if(pTop > wBot && pBot < wBot) {
-								canMoveUp = false;
-								
-						}
-						//down
-						if(pTop > wTop && pBot < wTop) {
-								canMoveDown = false;
-								
-						}
+                float wLeft = finalCollisionLayer.get(i).x;
+                float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
+                float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
+                float wBot = finalCollisionLayer.get(i).y;
 
-						if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
-								if(player.body.x == previousCoordX && player.body.y == previousCoordY) {
-										player.body.x = initialCoordsX;
-										player.body.y = initialCoordsY;
-								}
-								else {
-										player.body.x = previousCoordX;
-										player.body.y = previousCoordY;
-								}
-						}
-				}
+                float velocityX = spikes.get(s).velocityX;
+                float velocityY = spikes.get(s).velocityX;
+                
+                //left
+                if(sLeft < wRight && sRight > wRight) {
+                    velocityX = (-velocityX);
+                }
+                //right
+                if(sLeft < wLeft && sRight > wLeft) {
+                    velocityX = (-velocityX);
+                }
+                //up
+                if(sTop > wBot && sBot < wBot) {
+                    velocityY = (-velocityY);
+                }
+                //down
+                if(sTop > wTop && sBot < wTop) {
+                    velocityY = (-velocityY);
+                }
+
+                spikes.get(s).velocityX = velocityX;
+                spikes.get(s).velocityY = velocityY;
+                
+            }
+
+            
+
+            if(Intersector.intersectRectangles(player.body, finalCollisionLayer.get(i), new Rectangle())) {
+
+                float pLeft = player.body.x;
+                float pRight = player.body.x + player.body.width;
+                float pTop = player.body.y + player.body.height;
+                float pBot = player.body.y;
+
+                float wLeft = finalCollisionLayer.get(i).x;
+                float wRight = finalCollisionLayer.get(i).x + finalCollisionLayer.get(i).width;
+                float wTop = finalCollisionLayer.get(i).y + finalCollisionLayer.get(i).height;
+                float wBot = finalCollisionLayer.get(i).y;
+                
+                //left
+                if(pLeft < wRight && pRight > wRight) {
+                    canMoveLeft = false;
+                        
+                }
+                //right
+                if(pLeft < wLeft && pRight > wLeft) {
+                    canMoveRight = false;
+                        
+                }
+                //up
+                if(pTop > wBot && pBot < wBot) {
+                    canMoveUp = false;
+                        
+                }
+                //down
+                if(pTop > wTop && pBot < wTop) {
+                    canMoveDown = false;
+                        
+                }
+
+                if(!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown) {
+                    if(player.body.x == previousCoordX && player.body.y == previousCoordY) {
+                        player.body.x = initialCoordsX;
+                        player.body.y = initialCoordsY;
+                }
+                else {
+                        player.body.x = previousCoordX;
+                        player.body.y = previousCoordY;
+                    }
+                }
+            }
 		}
+
+        for(int s=0; s<spikes.size(); s++) { 
+            spikes.get(s).body.x += spikes.get(s).velocityX;
+            spikes.get(s).body.y += spikes.get(s).velocityY;
+        }
 		
 
 		if(controller.left && canMoveLeft){	
@@ -1022,8 +1102,11 @@ public class MyGdxGame extends ApplicationAdapter {
 				this.create();
 		}
 
+        healthBar.setValue(healthBar.getValue()-0.01f);
+
 		stage.draw();
 		stage.act();
+
 	}
 
 	
