@@ -13,6 +13,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -162,7 +163,11 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			monsterVelocityCounter = 0;
 
-        
+      Music song = Gdx.audio.newMusic(Gdx.files.internal("song.wav"));
+
+			song.setVolume(0.2f);
+			song.setLooping(true);
+			song.play();
 
         if(levelCounter == null || !isAlive) {
 			levelVariationName = "";
@@ -321,9 +326,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
 
 		int pickTileSet = (int) (Math.random()*(4));
-
-		//System.out.println(levelVariationName);
-
 
 		if(levelVariationName.equals("fire") || (pickTileSet==0 && levelCounter==1)) {
 			Pixmap pixmap200 = new Pixmap(Gdx.files.internal("lava.png"));
@@ -976,6 +978,8 @@ public class MyGdxGame extends ApplicationAdapter {
         }
 
 		font.draw(batch, "Level: " + levelCounter.toString(), camera.position.x + viewPortWidth/2 - 65, camera.position.y + viewPortHeight/2 - 10);
+
+        font.draw(batch, "Health: " + Math.round(healthBar.getValue()*100), camera.position.x - viewPortWidth/2 + 10, camera.position.y + viewPortHeight/2 - 25);
 		
 		batch.end();
 
@@ -1181,7 +1185,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				//get portal variation
 				String portalVariation = portal.variation;
 
-				System.out.println(portalVariation);
 				if(portalVariation.equals("nature_ice")) {
 					levelVariationName = "nature";
 				}
@@ -1200,7 +1203,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				if(portalVariation.equals("fire_water")) {
 					levelVariationName = "fire";
 				}
-				System.out.println(levelVariationName);
 
 				this.create();
 		}
@@ -1227,7 +1229,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				if(portalVariation.equals("fire_water")) {
 					levelVariationName = "water";
 				}
-				//System.out.println(levelVariationName);
 
 				this.create();
 		}
